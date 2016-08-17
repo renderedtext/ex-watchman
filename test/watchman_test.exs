@@ -30,4 +30,14 @@ defmodule WatchmanTest do
     assert TestUDPServer.last_message == "test.prod.setup.duration:30|ms"
   end
 
+  test "benchmark code execution" do
+    Watchman.benchmark("sleep.duration", fn ->
+      :timer.sleep(500)
+    end)
+
+    :timer.sleep(500)
+
+    assert TestUDPServer.last_message =~ ~r/test.prod.sleep.duration:5\d\d|ms/
+  end
+
 end

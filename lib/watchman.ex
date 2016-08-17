@@ -19,8 +19,12 @@ defmodule Watchman do
     GenServer.cast(__MODULE__, {:send, name, value, type})
   end
 
-  def benchmark(name, fun) do
-    # TODO
+  def benchmark(name, function) do
+    {duration, result} = function |> :timer.tc
+
+    submit(name, div(duration, 1000))
+
+    result
   end
 
   defp parse_host(host) when is_binary(host) do
