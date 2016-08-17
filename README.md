@@ -9,7 +9,7 @@ Add the following to the list of your dependencies:
 ``` elixir
 def deps do
   [
-    {:watchman, github: "renderedtext/ex_watchman"}
+    {:watchman, github: "renderedtext/ex-watchman"}
   ]
 end
 ```
@@ -28,7 +28,7 @@ First, set up the host and the port of the metrics server, and the prefix you
 want to use. Example:
 
 ``` elixir
-config :ex_statsd,
+config :watchman,
   host: "statistics.example.com"
   port: 22001,
   prefix: "my-service.prod"
@@ -51,7 +51,7 @@ Watchman.submit("installation.duration", 30, :timing)
 To benchmark a part of your service:
 
 ``` elixir
-Watchman.benchmark("time.to.wake.up", fn ->
+Watchman.benchmark("sleep.duration", fn ->
   IO.puts "Sleeping"
   :timer.sleep(10000)
   IO.puts "Wake up"
@@ -62,6 +62,7 @@ To benchmark a function in your module:
 
 ``` elixir
 defmodule Example do
+  use Watchman
 
   @benchmark
   def test
