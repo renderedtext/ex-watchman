@@ -3,7 +3,7 @@ defmodule Watchman do
 
   def start_link(options \\ []) do
     state = %{
-      host: options[:host] || Application.get_env(:watchman, :host),
+      host: options[:host] || Application.get_env(:watchman, :host) |> parse_host,
       port: options[:port] || Application.get_env(:watchman, :port),
       prefix: options[:prefix] || Application.get_env(:watchman, :prefix)
     }
@@ -23,6 +23,13 @@ defmodule Watchman do
     # TODO
   end
 
+  defp parse_host(host) when is_binary(host) do
+    case host |> to_char_list |> :inet.parse_address do
+      {:error, _}    -> host |> String.to_atom
+      {:ok, address} -> address
+    end
+  end
+
   # Server
 
   def handle_cast({:send, name, value, type}, state) do
@@ -31,6 +38,8 @@ defmodule Watchman do
     {:ok, socket} = :gen_udp.open(0, [:binary])
     :gen_udp.send(socket, state.host, state.port, package)
     :gen_udp.close(socket)
+
+    {:noreply, :ok}
   end
 
   defp statsd_package(prefix, name, value, :gauge) do
