@@ -19,6 +19,14 @@ defmodule Watchman do
     GenServer.cast(__MODULE__, {:send, name, value, type})
   end
 
+  def increment(name) do
+     submit(name, 1, :c)
+  end
+
+  def decrement(name) do
+    submit(name, -1, :c) 
+  end
+
   def benchmark(name, function) do
     {duration, result} = function |> :timer.tc
 
@@ -52,6 +60,10 @@ defmodule Watchman do
 
   defp statsd_package(prefix, name, value, :timing) do
     "#{prefix}.#{name}:#{value}|ms"
+  end
+
+  defp statsd_package(prefix, name, value, :c) do
+    "#{prefix}.#{name}:#{value}|c"
   end
 
 end
