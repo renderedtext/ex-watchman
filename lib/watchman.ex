@@ -24,7 +24,7 @@ defmodule Watchman do
   end
 
   def decrement(name) do
-    submit(name, -1, :c) 
+    submit(name, -1, :c)
   end
 
   def benchmark(name, function) do
