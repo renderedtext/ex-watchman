@@ -20,11 +20,11 @@ defmodule Watchman do
   end
 
   def increment(name) do
-     submit(name, 1, :c)
+    submit(name, 1, :count)
   end
 
   def decrement(name) do
-    submit(name, -1, :c)
+    submit(name, -1, :count)
   end
 
   def benchmark(name, function) do
@@ -62,7 +62,7 @@ defmodule Watchman do
     "#{prefix}.#{name}:#{value}|ms"
   end
 
-  defp statsd_package(prefix, name, value, :c) do
+  defp statsd_package(prefix, name, value, :count) do
     "#{prefix}.#{name}:#{value}|c"
   end
 
