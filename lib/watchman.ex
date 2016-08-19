@@ -3,7 +3,7 @@ defmodule Watchman do
 
   def start_link(options \\ []) do
     state = %{
-      host: options[:host] || Application.get_env(:watchman, :host) |> parse_host,
+      host: (options[:host] || Application.get_env(:watchman, :host)) |> parse_host,
       port: options[:port] || Application.get_env(:watchman, :port),
       prefix: options[:prefix] || Application.get_env(:watchman, :prefix)
     }
