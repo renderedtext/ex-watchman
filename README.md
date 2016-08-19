@@ -42,6 +42,18 @@ To submit a simple value from your service:
 Watchman.submit("users.count", 30)
 ```
 
+To increment a simple value from your service:
+
+``` elixir
+Watchman.increment("users.count")
+```
+
+to decrement:
+
+``` elixir
+Watchman.decrement("users.count")
+```
+
 To submit a timing value:
 
 ``` elixir

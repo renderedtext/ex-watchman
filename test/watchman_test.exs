@@ -30,6 +30,20 @@ defmodule WatchmanTest do
     assert TestUDPServer.last_message == "test.prod.setup.duration:30|ms"
   end
 
+  test "increment with counter type" do
+    Watchman.increment("increment")
+    :timer.sleep(500)
+
+    assert TestUDPServer.last_message == "test.prod.increment:1|c"
+  end
+
+  test "decrement with counter type" do
+    Watchman.decrement("decrement")
+    :timer.sleep(500)
+
+    assert TestUDPServer.last_message == "test.prod.decrement:-1|c"
+  end
+
   test "benchmark code execution" do
     Watchman.benchmark("sleep.duration", fn ->
       :timer.sleep(500)
