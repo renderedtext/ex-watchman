@@ -6,14 +6,16 @@ defmodule Watchman.Heartbeat do
   end
 
   def init(args) do
-    :timer.send_after(args[:interval] * 1000, args[:interval])
+    send(self(), {:submit_heartbeat, args[:interval] * 1000})
 
-    {:ok, []}
+    {:ok, :ok}
   end
 
-  def handle_info(interval, state) do
+  def handle_info(message = {:submit_heartbeat, interval}, :ok) do
     Watchman.submit("heartbeat", 1, :gauge)
-    :timer.send_after(interval * 1000, "send")
-    {:noreply, state}
+
+    :timer.send_after(interval, message)
+
+    {:noreply, :ok}
   end
 end
