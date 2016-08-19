@@ -84,8 +84,8 @@ defmodule Example do
 end
 ```
 
-To keep track if the application is running, use the heartbeat feature. Define a child process in the supervisor, with a name for the metric and an interval for the notification (in seconds), like so:
+To keep track if the application is running, use the heartbeat feature. Define a child process in the supervisor with a defined interval between notifications (in seconds), like so:
 
 ``` elixir
-worker(Watchman.Heartbeat, [name: "heartbeat_for_my_app", interval: 1])
+worker(Watchman.Heartbeat, [interval: 1])
 ```
