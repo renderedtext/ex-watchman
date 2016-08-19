@@ -11,9 +11,9 @@ defmodule Watchman.Heartbeat do
     {:ok, []}
   end
 
-  def handle_info(package, state) do
+  def handle_info(interval, state) do
     Watchman.submit("heartbeat", 1, :gauge)
-    :timer.send_after(package * 1000, "send")
+    :timer.send_after(interval * 1000, "send")
     {:noreply, state}
   end
 end
