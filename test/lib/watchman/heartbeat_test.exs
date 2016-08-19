@@ -22,7 +22,7 @@ defmodule WatchmanHeartbeatTest do
   end
 
   test "heartbeat test" do
-    {:ok, hb} = Watchman.Heartbeat.start_link([name: "heartbeat", interval: 1])
+    {:ok, hb} = Watchman.Heartbeat.start_link([interval: 1])
     :timer.sleep(2000)
     GenServer.stop(hb)
     assert TestUDPServer.last_message == "test.prod.heartbeat:1|g"
