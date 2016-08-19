@@ -27,18 +27,6 @@ defmodule Watchman do
     submit(name, -1, :count)
   end
   
-  def heartbeat(name) do
-    spawn fn ->
-      send_heartbeat(name)
-    end
-  end
-
-  defp send_heartbeat(name) do
-    submit(name, "stayin_alive", :gauge)
-    :timer.sleep(1000)
-    send_heartbeat(name)
-  end
-
   def benchmark(name, function) do
     {duration, result} = function |> :timer.tc
 
