@@ -6,11 +6,17 @@ defmodule WatchmanHeartbeatTest do
   setup do
     TestUDPServer.start_link(port: @test_port)
 
-    {:ok, _watchman} = Watchman.start_link([
+    {:ok, watchman} = Watchman.start_link([
       host: 'localhost',
       port: @test_port,
       prefix: "test.prod"
     ])
+
+    on_exit fn ->
+      if Process.alive?(watchman) do
+         GenServer.stop(watchman)
+      end
+    end
 
     :ok
   end
