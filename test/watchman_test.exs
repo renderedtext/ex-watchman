@@ -1,4 +1,4 @@
-defmodule WatchmanHeatbeatTest do
+defmodule WatchmanTest do
   use ExUnit.Case
 
   @test_port 33322

@@ -1,4 +1,4 @@
-defmodule WatchmanTest do
+defmodule WatchmanHeartbeatTest do
   use ExUnit.Case
 
   @test_port 33322
@@ -19,6 +19,6 @@ defmodule WatchmanTest do
     {:ok, hb} = Watchman.Heartbeat.start_link([name: "heartbeat", interval: 1])
     :timer.sleep(2000)
     GenServer.stop(hb)
-    assert TestUDPServer.last_message == "test.prod.heartbeat:stayin_alive|g"
+    assert TestUDPServer.last_message == "test.prod.heartbeat:1|g"
   end
 end

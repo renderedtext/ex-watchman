@@ -7,15 +7,15 @@ defmodule Watchman.Heartbeat do
 
   def init(args) do
     spawn fn ->
-      send_heartbeat(args[:name], args[:interval])
+      send_heartbeat(args[:interval])
     end
 
     {:ok, []}
   end
 
-  defp send_heartbeat(name, interval) do
-    Watchman.submit(name, "stayin_alive", :gauge)
+  defp send_heartbeat(interval) do
+    Watchman.submit("heartbeat", 1, :gauge)
     :timer.sleep(interval * 1000)
-    send_heartbeat(name, interval)
+    send_heartbeat(interval)
   end
 end
