@@ -51,7 +51,7 @@ defmodule Watchman do
     :gen_udp.send(socket, state.host, state.port, package)
     :gen_udp.close(socket)
 
-    {:noreply, :ok}
+    {:noreply, state}
   end
 
   defp statsd_package(prefix, name, value, :gauge) do
