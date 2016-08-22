@@ -26,12 +26,10 @@ defmodule Watchman do
   def decrement(name) do
     submit(name, -1, :count)
   end
-  
+
   def benchmark(name, function) do
     {duration, result} = function |> :timer.tc
-
     submit(name, div(duration, 1000))
-
     result
   end
 
@@ -45,21 +43,11 @@ defmodule Watchman do
   # Server
 
   def handle_cast({:send, name, value, type}, state) do
-    IO.puts "HANDLE_CAST 0"
-    IO.inspect state
     package = statsd_package(state.prefix, name, value, type)
-    IO.puts "HANDLE_CAST 1"
     {:ok, socket} = :gen_udp.open(0, [:binary])
-    IO.puts "HANDLE_CAST 2"
     :gen_udp.send(socket, state.host, state.port, package)
-    IO.puts "HANDLE_CAST 3"
     :gen_udp.close(socket)
-    IO.puts "HANDLE_CAST 4"
 
-<<<<<<< HEAD
-=======
-    #{:noreply, :ok}
->>>>>>> d41dcbb... Add basic heartbeat process with a basic test
     {:noreply, state}
   end
 
