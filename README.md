@@ -29,7 +29,7 @@ want to use. Example:
 
 ``` elixir
 config :watchman,
-  host: "statistics.example.com"
+  host: "statistics.example.com",
   port: 22001,
   prefix: "my-service.prod"
 ```
@@ -87,5 +87,5 @@ end
 To keep track if the application is running, use the heartbeat feature. Define a child process in the supervisor with a defined interval between notifications (in seconds), like so:
 
 ``` elixir
-worker(Watchman.Heartbeat, [interval: 1])
+worker(Watchman.Heartbeat, [[interval: 1]])
 ```
