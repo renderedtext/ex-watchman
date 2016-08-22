@@ -12,8 +12,6 @@ defmodule WatchmanTest do
       prefix: "test.prod"
     ])
 
-
-
     :ok
   end
 
@@ -53,17 +51,6 @@ defmodule WatchmanTest do
     :timer.sleep(500)
 
     assert TestUDPServer.last_message =~ ~r/test.prod.sleep.duration:5\d\d|ms/
-  end
-
-  test "heartbeat" do
-
-    Watchman.heartbeat("heartbeat")
-
-    :timer.sleep(3000)
-
-    # IO.puts TestUDPServer.last_message
-
-    assert TestUDPServer.last_message == "test.prod.heartbeat:stayin_alive|g"
   end
 
 end

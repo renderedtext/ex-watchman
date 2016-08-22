@@ -7,7 +7,7 @@ defmodule WatchmanHeartbeatTest do
     TestUDPServer.start_link(port: @test_port)
 
     {:ok, watchman} = Watchman.start_link([
-      host: 'localhost',
+      host: "localhost",
       port: @test_port,
       prefix: "test.prod"
     ])
