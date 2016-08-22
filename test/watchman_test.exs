@@ -1,6 +1,5 @@
 defmodule WatchmanTest do
   use ExUnit.Case
-  doctest Watchman
 
   @test_port 33322
 

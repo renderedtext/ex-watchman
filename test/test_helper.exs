@@ -8,19 +8,19 @@ defmodule TestUDPServer do
   def init([port: port]) do
     {:ok, _} = :gen_udp.open(port, [:binary, active: true])
 
-    {:ok, nil}
+    {:ok, []}
   end
 
   def last_message do
     GenServer.call(__MODULE__, :last_message)
   end
 
-  def handle_info({udp, socket, host, port, package}, last_message) do
-    {:noreply, package}
+  def handle_info({_udp, _socket, _host, _port, package}, messages) do
+    {:noreply, [package| messages]}
   end
 
-  def handle_call(:last_message, _from, last_message) do
-    {:reply, last_message, last_message}
+  def handle_call(:last_message, _from, messages) do
+    {:reply, hd(messages), messages}
   end
 end
 

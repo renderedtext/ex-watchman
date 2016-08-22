@@ -29,9 +29,7 @@ defmodule Watchman do
 
   def benchmark(name, function) do
     {duration, result} = function |> :timer.tc
-
     submit(name, div(duration, 1000))
-
     result
   end
 
@@ -46,12 +44,11 @@ defmodule Watchman do
 
   def handle_cast({:send, name, value, type}, state) do
     package = statsd_package(state.prefix, name, value, type)
-
     {:ok, socket} = :gen_udp.open(0, [:binary])
     :gen_udp.send(socket, state.host, state.port, package)
     :gen_udp.close(socket)
 
-    {:noreply, :ok}
+    {:noreply, state}
   end
 
   defp statsd_package(prefix, name, value, :gauge) do
