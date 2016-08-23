@@ -1,5 +1,4 @@
 defmodule Watchman do
-  use GenServer
   use Application
 
   def start(_type, _args) do
