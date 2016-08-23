@@ -11,7 +11,7 @@ defmodule Watchman.Mixfile do
   end
 
   def application do
-    [applications: []]
+    [mod: {Watchman, []}, applications: [:logger]]
   end
 
   defp deps do
