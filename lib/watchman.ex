@@ -8,7 +8,7 @@ defmodule Watchman do
       worker(Watchman.Server, []),
     ]
 
-    opts = [strategy: :one_for_one, name: JobCallbackBroker.Supervisor]
+    opts = [strategy: :one_for_one, name: __MODULE__]
     Supervisor.start_link(children, opts)
   end
 
