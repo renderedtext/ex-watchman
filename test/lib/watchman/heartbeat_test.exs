@@ -11,8 +11,12 @@ defmodule WatchmanHeartbeatTest do
 
   test "heartbeat test" do
     {:ok, hb} = Watchman.Heartbeat.start_link([interval: 1])
-    :timer.sleep(2000)
+    :timer.sleep(5000)
 
-    assert TestUDPServer.last_message == "watchman.test.heartbeat:1|g"
+    assert TestUDPServer.last_message == "watchman.test.heartbeat:4|g"
+
+    :timer.sleep(3000)
+
+    assert TestUDPServer.last_message == "watchman.test.heartbeat:7|g"
   end
 end
