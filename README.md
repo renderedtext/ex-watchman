@@ -54,12 +54,40 @@ to decrement:
 Watchman.decrement("users.count")
 ```
 
+You can also use the count annotation. Placed in front of a method, it will count the number of times the method was called.
+To count a method with an auto generated key in your module:
+```elixir
+defmodule Example do
+  use Watchman.Count
+
+  @count(key: :auto)
+  def test
+    :timer.sleep(10)
+  end
+
+end
+```
+
+To count a method while giving the metric a key:
+```elixir
+defmodule Example do
+  use Watchman.Count
+
+  @count(key: "lazy.test.function.that.only.sleeps.count")
+  def test
+    :timer.sleep(10)
+  end
+
+end
+```
+
 To submit a timing value:
 
 ``` elixir
 Watchman.submit("installation.duration", 30, :timing)
 ```
 
+For timing services you can use the benchmark feature.
 To benchmark a part of your service:
 
 ``` elixir
@@ -89,7 +117,7 @@ To benchmark a function while giving the metric a key:
 defmodule Example do
   use Watchman.Benchmark
 
-  @benchmark(key: "lazy.test.function.that.only.sleeps")
+  @benchmark(key: "lazy.test.function.that.only.sleeps.benchmark")
   def test
     :timer.sleep(10)
   end

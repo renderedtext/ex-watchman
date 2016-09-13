@@ -1,6 +1,7 @@
 defmodule WatchmanTest do
   use ExUnit.Case
   use Watchman.Benchmark
+  use Watchman.Count
 
   @test_port 8125
 
@@ -18,6 +19,16 @@ defmodule WatchmanTest do
   @benchmark(key: "goddammit.charlie")
   def test_function2 do
     :timer.sleep(500)
+  end
+
+  @count(key: :auto)
+  def test_function3 do
+    :timer.sleep(200)
+  end
+
+  @count(key: "because.of.the.implication")
+  def test_function4 do
+    :timer.sleep(200)
   end
 
   test "submit with no type" do
@@ -73,6 +84,22 @@ defmodule WatchmanTest do
     :timer.sleep(500)
 
     assert TestUDPServer.last_message =~ ~r/watchman.test.goddammit.charlie:5\d\d|ms/
+  end
+
+  test "count annotation auto key test" do
+    test_function3
+
+    :timer.sleep(500)
+
+    assert TestUDPServer.last_message == "watchman.test.watchman_test.test_function3:1|c"
+  end
+
+  test "count annotation manual key test" do
+    test_function4
+
+    :timer.sleep(500)
+
+    assert TestUDPServer.last_message == "watchman.test.because.of.the.implication:1|c"
   end
 
 end
