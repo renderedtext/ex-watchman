@@ -1,6 +1,21 @@
 defmodule Watchman do
   use Application
 
+  defmacro __using__(_mod) do
+    quote do
+      import Watchman
+
+      Module.register_attribute(__MODULE__, :watchman_benchmarks, accumulate: true)
+      Module.register_attribute(__MODULE__, :watchman_counts, accumulate: true)
+
+      @before_compile Watchman.Benchmark
+      @on_definition Watchman.Benchmark
+
+      @before_compile Watchman.Count
+      @on_definition Watchman.Count
+    end
+  end
+
   def start(_type, _args) do
     import Supervisor.Spec, warn: false
 

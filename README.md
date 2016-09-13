@@ -128,6 +128,16 @@ defmodule Example do
 end
 ```
 Please note that if the key is manually given, it cannot contain blank spaces.
+Also, if you want to use both the benchmark and the count annotations, you can
+just write:
+```elixir
+use Watchman
+```
+instead of:
+```elixir
+use Watchman.Benchmark
+use Watchman.Count
+```
 
 To keep track if the application is running, use the heartbeat feature. Define
 a child process in the supervisor with a defined interval between notifications

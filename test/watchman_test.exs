@@ -1,7 +1,6 @@
 defmodule WatchmanTest do
   use ExUnit.Case
-  use Watchman.Benchmark
-  use Watchman.Count
+  use Watchman
 
   @test_port 8125
 
