@@ -1,6 +1,6 @@
 defmodule WatchmanTest do
   use ExUnit.Case
-  use Watchman
+  use Watchman.Benchmark
 
   @test_port 8125
 
@@ -10,60 +10,69 @@ defmodule WatchmanTest do
     :ok
   end
 
-  @benchmark
-  def time_to_pretend do
-    IO.puts "time_to_pretend is being executed!"
+  @benchmark(key: :auto)
+  def test_function1 do
+    :timer.sleep(1000)
+  end
+
+  @benchmark(key: "Goddammit Charlie!")
+  def test_function2 do
     :timer.sleep(500)
   end
 
-  #test "submit with no type" do
-  #  Watchman.submit("user.count", 30)
-
-  #  :timer.sleep(500)
-
-  #  assert TestUDPServer.last_message == "watchman.test.user.count:30|g"
-  #end
-
-  #test "submit with timing type" do
-  #  Watchman.submit("setup.duration", 30, :timing)
-  #  :timer.sleep(500)
-
-  #  assert TestUDPServer.last_message == "watchman.test.setup.duration:30|ms"
-  #end
-
-  #test "increment with counter type" do
-  #  Watchman.increment("increment")
-  #  :timer.sleep(500)
-
-  #  assert TestUDPServer.last_message == "watchman.test.increment:1|c"
-  #end
-
-  #test "decrement with counter type" do
-  #  Watchman.decrement("decrement")
-  #  :timer.sleep(500)
-
-  #  assert TestUDPServer.last_message == "watchman.test.decrement:-1|c"
-  #end
-
-  #test "benchmark code execution" do
-  #  Watchman.benchmark("sleep.duration", fn ->
-  #    :timer.sleep(500)
-  #  end)
-
-  #  :timer.sleep(500)
-
-  #  assert TestUDPServer.last_message =~ ~r/watchman.test.sleep.duration:5\d\d|ms/
-  #end
-
-  test "benchmark annotation test" do
-    time_to_pretend
+  test "submit with no type" do
+    Watchman.submit("user.count", 30)
 
     :timer.sleep(500)
 
-    IO.inspect TestUDPServer.last_message
+    assert TestUDPServer.last_message == "watchman.test.user.count:30|g"
+  end
 
-    assert 1 + 1 == 2
+  test "submit with timing type" do
+    Watchman.submit("setup.duration", 30, :timing)
+    :timer.sleep(500)
 
+    assert TestUDPServer.last_message == "watchman.test.setup.duration:30|ms"
+  end
+
+  test "increment with counter type" do
+    Watchman.increment("increment")
+    :timer.sleep(500)
+
+    assert TestUDPServer.last_message == "watchman.test.increment:1|c"
+  end
+
+  test "decrement with counter type" do
+    Watchman.decrement("decrement")
+    :timer.sleep(500)
+
+    assert TestUDPServer.last_message == "watchman.test.decrement:-1|c"
+  end
+
+  test "benchmark code execution" do
+    Watchman.benchmark("sleep.duration", fn ->
+      :timer.sleep(500)
+    end)
+
+    :timer.sleep(500)
+
+    assert TestUDPServer.last_message =~ ~r/watchman.test.sleep.duration:5\d\d|ms/
+  end
+
+  test "benchmark annotation auto key test" do
+    test_function1
+
+    :timer.sleep(500)
+
+    assert TestUDPServer.last_message =~ ~r/watchman.test.watchman_test.test_function1:10\d\d|ms/
+  end
+
+  test "benchmark annotation manual key test" do
+    test_function2
+
+    :timer.sleep(500)
+
+    assert TestUDPServer.last_message =~ ~r/watchman.test.Goddammit Charlie!:5\d\d|ms/
   end
 
 end

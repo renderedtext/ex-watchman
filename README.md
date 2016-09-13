@@ -70,13 +70,26 @@ Watchman.benchmark("sleep.duration", fn ->
 end)
 ```
 
-To benchmark a function in your module:
+To benchmark a function with an auto generated key in your module:
 
 ``` elixir
 defmodule Example do
-  use Watchman
+  use Watchman.Benchmark
 
-  @benchmark
+  @benchmark(key: :auto)
+  def test
+    :timer.sleep(10)
+  end
+
+end
+```
+
+To benchmark a function while giving the metric a key:
+``` elixir
+defmodule Example do
+  use Watchman.Benchmark
+
+  @benchmark(key: "lazy.test.function.that.only.sleeps")
   def test
     :timer.sleep(10)
   end
