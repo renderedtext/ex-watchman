@@ -96,6 +96,7 @@ defmodule Example do
 
 end
 ```
+Please note that if the key is manually given, it cannot contain blank spaces.
 
 To keep track if the application is running, use the heartbeat feature. Define a child process in the supervisor with a defined interval between notifications (in seconds), like so:
 

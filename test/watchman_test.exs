@@ -15,7 +15,7 @@ defmodule WatchmanTest do
     :timer.sleep(1000)
   end
 
-  @benchmark(key: "Goddammit Charlie!")
+  @benchmark(key: "goddammit.charlie")
   def test_function2 do
     :timer.sleep(500)
   end
@@ -72,7 +72,7 @@ defmodule WatchmanTest do
 
     :timer.sleep(500)
 
-    assert TestUDPServer.last_message =~ ~r/watchman.test.Goddammit Charlie!:5\d\d|ms/
+    assert TestUDPServer.last_message =~ ~r/watchman.test.goddammit.charlie:5\d\d|ms/
   end
 
 end

@@ -33,7 +33,11 @@ defmodule Watchman.Benchmark do
 
                 "#{prefix}.#{name}"
 
-              other -> other
+              other ->
+                if String.contains?(other, " ") do
+                  raise "The key contains blank spaces! Try replacing them with '.'!"
+                end
+                other
             end
 
       # add this function as one of the benchmarked ones
