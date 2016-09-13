@@ -20,6 +20,7 @@ defmodule TestUDPServer do
   end
 
   def handle_call(:last_message, _from, messages) do
+    IO.puts "Messages: #{messages}"
     {:reply, hd(messages), messages}
   end
 end
