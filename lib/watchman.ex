@@ -26,8 +26,7 @@ defmodule Watchman do
 
   def benchmark(name, function) do
     {duration, result} = function |> :timer.tc
-    submit(name, div(duration, 1000))
+    submit(name, div(duration, 1000), :timing)
     result
   end
-
 end

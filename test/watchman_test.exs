@@ -1,5 +1,6 @@
 defmodule WatchmanTest do
   use ExUnit.Case
+  use Watchman.Benchmark
 
   @test_port 8125
 
@@ -7,6 +8,16 @@ defmodule WatchmanTest do
     TestUDPServer.start_link(port: @test_port)
 
     :ok
+  end
+
+  @benchmark(key: :auto)
+  def test_function1 do
+    :timer.sleep(1000)
+  end
+
+  @benchmark(key: "goddammit.charlie")
+  def test_function2 do
+    :timer.sleep(500)
   end
 
   test "submit with no type" do
@@ -46,6 +57,22 @@ defmodule WatchmanTest do
     :timer.sleep(500)
 
     assert TestUDPServer.last_message =~ ~r/watchman.test.sleep.duration:5\d\d|ms/
+  end
+
+  test "benchmark annotation auto key test" do
+    test_function1
+
+    :timer.sleep(500)
+
+    assert TestUDPServer.last_message =~ ~r/watchman.test.watchman_test.test_function1:10\d\d|ms/
+  end
+
+  test "benchmark annotation manual key test" do
+    test_function2
+
+    :timer.sleep(500)
+
+    assert TestUDPServer.last_message =~ ~r/watchman.test.goddammit.charlie:5\d\d|ms/
   end
 
 end

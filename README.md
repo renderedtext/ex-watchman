@@ -70,19 +70,33 @@ Watchman.benchmark("sleep.duration", fn ->
 end)
 ```
 
-To benchmark a function in your module:
+To benchmark a function with an auto generated key in your module:
 
 ``` elixir
 defmodule Example do
-  use Watchman
+  use Watchman.Benchmark
 
-  @benchmark
+  @benchmark(key: :auto)
   def test
     :timer.sleep(10)
   end
 
 end
 ```
+
+To benchmark a function while giving the metric a key:
+``` elixir
+defmodule Example do
+  use Watchman.Benchmark
+
+  @benchmark(key: "lazy.test.function.that.only.sleeps")
+  def test
+    :timer.sleep(10)
+  end
+
+end
+```
+Please note that if the key is manually given, it cannot contain blank spaces.
 
 To keep track if the application is running, use the heartbeat feature. Define a child process in the supervisor with a defined interval between notifications (in seconds), like so:
 
