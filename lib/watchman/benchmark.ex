@@ -40,13 +40,16 @@ defmodule Watchman.Benchmark do
                 other
             end
 
+      method = %BenchmarkedMethod{
+        method_name: name,
+        args: args,
+        guards: guards,
+        body: body,
+        key: key
+      }
+
       # add this function as one of the benchmarked ones
-      Module.put_attribute(mod, :watchman_benchmarks,
-                           %BenchmarkedMethod{method_name: name,
-                                  args: args,
-                                  guards: guards,
-                                  body: body,
-                                  key: key})
+      Module.put_attribute(mod, :watchman_benchmarks, method)
 
       Module.delete_attribute(mod, :benchmark)
     end
@@ -56,7 +59,7 @@ defmodule Watchman.Benchmark do
     # inject a Watchman.benchmark between the function definition (def name) and the body,
     # so that the time taken to execute the function body can be measured
     quote do
-      Watchman.benchmark(unquote(benchmark_data.key), fn (unquote_splicing(benchmark_data.args)) ->
+      Watchman.benchmark(unquote(benchmark_data.key), fn ->
         unquote(benchmark_data.body)
       end)
     end
