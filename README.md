@@ -36,11 +36,30 @@ config :watchman,
 
 ## Usage
 
+### Heartbeat
+To keep track if the application is running, use the heartbeat feature. Define
+a child process in the supervisor with a defined interval between notifications
+(in seconds), like so:
+
+``` elixir
+worker(Watchman.Heartbeat, [[interval: 1]])
+```
+
+### Submitting simple values
+
 To submit a simple value from your service:
 
 ``` elixir
 Watchman.submit("users.count", 30)
 ```
+
+To submit a timing value:
+
+``` elixir
+Watchman.submit("installation.duration", 30, :timing)
+```
+
+### Counting
 
 To increment a simple value from your service:
 
@@ -83,13 +102,7 @@ defmodule Example do
 end
 ```
 
-To submit a timing value:
-
-``` elixir
-Watchman.submit("installation.duration", 30, :timing)
-```
-
-For timing services you can use the benchmark feature.
+### Benchmarking
 
 To benchmark a part of your service:
 
@@ -116,6 +129,7 @@ end
 ```
 
 To benchmark a function while giving the metric a key:
+
 ``` elixir
 defmodule Example do
   use Watchman.Benchmark
@@ -127,12 +141,24 @@ defmodule Example do
 
 end
 ```
+
 Please note that if the key is manually given, it cannot contain blank spaces.
 
-To keep track if the application is running, use the heartbeat feature. Define
-a child process in the supervisor with a defined interval between notifications
-(in seconds), like so:
+To benchmark functions with multiple bodies, use only a single annotation:
 
 ``` elixir
-worker(Watchman.Heartbeat, [[interval: 1]])
-```
+defmodule Example do
+  use Watchman.Benchmark
+
+  @benchmark(key: :auto)
+  def sum(a, b) when is_integer(a) and is_integer(b) do
+    a + b
+  end
+  def sum(a, b) when is_list(a) and is_list(b) do
+    a ++ b
+  end
+  def sum(a, b) when is_binary(a) and is_binary(b) do
+    a <> b
+  end
+
+end

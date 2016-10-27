@@ -24,4 +24,4 @@ defmodule TestUDPServer do
   end
 end
 
-ExUnit.start()
+ExUnit.start(trace: true)
