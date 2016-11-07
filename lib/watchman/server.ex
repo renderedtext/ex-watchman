@@ -25,8 +25,15 @@ defmodule Watchman.Server do
     end
   end
 
+  def handle_cast({:send, {name, tags}, value, type}, state) when is_list(tags) do
+    handle_cast_(name, tags, value, type, state)
+  end
   def handle_cast({:send, name, value, type}, state) do
-    package = statsd_package(state.prefix, name, value, type)
+    handle_cast_(name, [], value, type, state)
+  end
+
+  def handle_cast_(name, tag_list, value, type, state) do
+    package = statsd_package(state.prefix, name, tag_list |> tags, value, type)
     {:ok, socket} = :gen_udp.open(0, [:binary])
     :gen_udp.send(socket, state.host, state.port, package)
     :gen_udp.close(socket)
@@ -34,17 +41,23 @@ defmodule Watchman.Server do
     {:noreply, state}
   end
 
-  defp statsd_package(prefix, name, value, :gauge) do
-    "#{prefix}.#{name}:#{value}|g"
+  defp statsd_package(prefix, name, tags, value, :gauge) do
+    "tagged.#{prefix}.#{tags}.#{name}:#{value}|g"
   end
 
-  defp statsd_package(prefix, name, value, :timing) do
-    "#{prefix}.#{name}:#{value}|ms"
+  defp statsd_package(prefix, name, tags, value, :timing) do
+    "tagged.#{prefix}.#{tags}.#{name}:#{value}|ms"
   end
 
-  defp statsd_package(prefix, name, value, :count) do
-    "#{prefix}.#{name}:#{value}|c"
+  defp statsd_package(prefix, name, tags, value, :count) do
+    "tagged.#{prefix}.#{tags}.#{name}:#{value}|c"
   end
 
+  @no_tag ~w(no_tag no_tag no_tag)
+  defp tags(tag_list) do
+    tag_list ++ @no_tag
+    |> Enum.take(3)
+    |> Enum.join(".")
+  end
 
 end
