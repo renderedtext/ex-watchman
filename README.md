@@ -36,6 +36,12 @@ config :watchman,
 
 ## Usage
 
+Never name metric with variable:
+```elixir
+Watchman.submit("user.#{id}.count", 30)
+```
+If you need something like that, you probably need [tags](#tags)!
+
 ### Heartbeat
 To keep track if the application is running, use the heartbeat feature. Define
 a child process in the supervisor with a defined interval between notifications
@@ -162,3 +168,28 @@ defmodule Example do
   end
 
 end
+```
+
+## Tags
+If metrics family is needed, something like:
+```
+user.1.count
+user.2.count
+user.3.count
+...
+```
+
+**NEVER** name metric like this:
+```elixir
+Watchman.increment("user.#{id}.count")
+```
+instead use tags, like this:
+```elixir
+Watchman.increment({"user.count", ["#{id}"]})
+```
+
+Second example will create 1 measurement in InfluxDB with tag value `"#{id}"`.
+And it is right thing to do.
+
+There can be 3 tag values at the most.
+(If you need more - shout.)

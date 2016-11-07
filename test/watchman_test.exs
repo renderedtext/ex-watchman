@@ -25,28 +25,56 @@ defmodule WatchmanTest do
 
     :timer.sleep(500)
 
-    assert TestUDPServer.last_message == "watchman.test.user.count:30|g"
+    assert TestUDPServer.last_message ==
+            "tagged.watchman.test.no_tag.no_tag.no_tag.user.count:30|g"
   end
 
   test "submit with timing type" do
     Watchman.submit("setup.duration", 30, :timing)
     :timer.sleep(500)
 
-    assert TestUDPServer.last_message == "watchman.test.setup.duration:30|ms"
+    assert TestUDPServer.last_message ==
+            "tagged.watchman.test.no_tag.no_tag.no_tag.setup.duration:30|ms"
+  end
+
+  test "submit with counter type - 1 tag" do
+    Watchman.submit({"setup.duration", [:tag]}, 30, :count)
+    :timer.sleep(500)
+
+    assert TestUDPServer.last_message ==
+            "tagged.watchman.test.tag.no_tag.no_tag.setup.duration:30|c"
+  end
+
+  test "submit with counter type - 3 tags" do
+    Watchman.submit({"setup.duration", [:tag1, :tag2, :tag3]}, 30, :count)
+    :timer.sleep(500)
+
+    assert TestUDPServer.last_message ==
+            "tagged.watchman.test.tag1.tag2.tag3.setup.duration:30|c"
+  end
+
+  test "submit with counter type - 4 tags - dissregarded" do
+    Watchman.submit({"setup.duration", [:tag1, :tag2, :tag3]}, 30, :count)
+    :timer.sleep(500)
+
+    assert TestUDPServer.last_message ==
+            "tagged.watchman.test.tag1.tag2.tag3.setup.duration:30|c"
   end
 
   test "increment with counter type" do
     Watchman.increment("increment")
     :timer.sleep(500)
 
-    assert TestUDPServer.last_message == "watchman.test.increment:1|c"
+    assert TestUDPServer.last_message ==
+            "tagged.watchman.test.no_tag.no_tag.no_tag.increment:1|c"
   end
 
   test "decrement with counter type" do
     Watchman.decrement("decrement")
     :timer.sleep(500)
 
-    assert TestUDPServer.last_message == "watchman.test.decrement:-1|c"
+    assert TestUDPServer.last_message ==
+            "tagged.watchman.test.no_tag.no_tag.no_tag.decrement:-1|c"
   end
 
   test "benchmark code execution" do
@@ -64,7 +92,8 @@ defmodule WatchmanTest do
 
     :timer.sleep(500)
 
-    assert TestUDPServer.last_message == "watchman.test.watchman_test.test_function3:1|c"
+    assert TestUDPServer.last_message ==
+      "tagged.watchman.test.no_tag.no_tag.no_tag.watchman_test.test_function3:1|c"
   end
 
   test "count annotation manual key test" do
@@ -72,7 +101,8 @@ defmodule WatchmanTest do
 
     :timer.sleep(500)
 
-    assert TestUDPServer.last_message == "watchman.test.because.of.the.implication:1|c"
+    assert TestUDPServer.last_message ==
+      "tagged.watchman.test.no_tag.no_tag.no_tag.because.of.the.implication:1|c"
   end
 
 end
