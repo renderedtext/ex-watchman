@@ -193,3 +193,26 @@ And it is right thing to do.
 
 There can be 3 tag values at the most.
 (If you need more - shout.)
+
+## System metrics
+
+You can gather system metrics simply by adding a `Watchman.System` worker to
+your supervisor.
+
+The following will send a bundle of metrics to your metrics server every `60`
+seconds:
+
+``` elixir
+worker(Watchman.System, [[interval: 60]])
+```
+
+The following metrics are sent:
+
+- system.memory.total
+- system.memory.processes
+- system.memory.processes_used
+- system.memory.atom
+- system.memory.atom_used
+- system.memory.binary
+- system.memory.code
+- system.memory.ets
