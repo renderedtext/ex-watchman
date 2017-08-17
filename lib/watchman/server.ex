@@ -4,7 +4,7 @@ defmodule Watchman.Server do
 
   def start_link(options \\ []) do
     state = %{
-      host: (options[:host] || Application.get_env(:watchman, :host)) |> parse_host,
+      host: options[:host] || Application.get_env(:watchman, :host),
       port: options[:port] || Application.get_env(:watchman, :port),
       prefix: options[:prefix] || Application.get_env(:watchman, :prefix)
     }
@@ -20,6 +20,8 @@ defmodule Watchman.Server do
     if state[:prefix] == nil || state[:prefix] == "" do
       raise "Watchman Prefix is not defined"
     end
+
+    state = %{ state | host: parse_host(state.host) }
 
     Logger.info "Watchman sending metrics to #{state.host}:#{state.port} with prefix '#{state.prefix}'"
 
