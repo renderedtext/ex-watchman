@@ -9,6 +9,18 @@ defmodule Watchman.Server do
       prefix: options[:prefix] || Application.get_env(:watchman, :prefix)
     }
 
+    if state[:host] == nil || state[:host] == "" do
+      raise "Watchman Host is not defined"
+    end
+
+    if state[:port] == nil || state[:port] == "" do
+      raise "Watchman Port is not defined"
+    end
+
+    if state[:prefix] == nil || state[:prefix] == "" do
+      raise "Watchman Prefix is not defined"
+    end
+
     Logger.info "Watchman sending metrics to #{state.host}:#{state.port} with prefix '#{state.prefix}'"
 
     GenServer.start_link(__MODULE__, state, [name: __MODULE__])
