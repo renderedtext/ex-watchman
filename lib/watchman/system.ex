@@ -30,5 +30,6 @@ defmodule Watchman.System do
     Watchman.submit("system.memory.binary", :erlang.memory |> Keyword.get(:binary))
     Watchman.submit("system.memory.code", :erlang.memory |> Keyword.get(:code))
     Watchman.submit("system.memory.ets", :erlang.memory |> Keyword.get(:ets))
+    Watchman.submit("system.process.count", Process.list |> Enum.count())
   end
 end
