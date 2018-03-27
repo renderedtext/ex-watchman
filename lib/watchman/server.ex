@@ -21,9 +21,9 @@ defmodule Watchman.Server do
       raise "Watchman Prefix is not defined"
     end
 
-    state = %{ state | host: parse_host(state.host) }
-
     Logger.info "Watchman sending metrics to #{state.host}:#{state.port} with prefix '#{state.prefix}'"
+
+    state = %{ state | host: parse_host(state.host) }
 
     GenServer.start_link(__MODULE__, state, [name: __MODULE__])
   end
