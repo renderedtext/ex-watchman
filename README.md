@@ -216,3 +216,41 @@ The following metrics are sent:
 - system.memory.binary
 - system.memory.code
 - system.memory.ets
+
+## Ecto Metrics
+
+Watchman.Ecto is a custom built ecto logger that submits transaction data
+to StatsD servers.
+
+To use the logger add this Logger to your ecto configuration.
+
+Example setup from `config/config.ex`:
+
+```
+repo_name = "example_repo"
+
+config :my_app, MyApp.Repo,
+  loggers: [
+    {Ecto.LogEntry, :log, [:debug]},
+    {Watchman.Ecto, :log, [repo_name]}
+  ]
+```
+
+When set up, this will generate the following metrics:
+
+```
+1. total transaction counter
+<watchman-prefix>.transaction.count, with tags: [repo_name, table_name]
+
+2. the time spent executing the query in DB native units (nanosecs)
+<watchman-prefix>.transaction.duration, with tags: [repo_name, table_name, "query"]
+
+3. the time spent to check the connection out in DB native units (nanosecs)
+<watchman-prefix>.transaction.duration, with tags: [repo_name, table_name, "queue"]
+
+4. the time spent decoding the result in DB native units (nanosecs)
+<watchman-prefix>.transaction.duration, with tags: [repo_name, table_name, "decode"]
+
+5. total time spend for the transaction in DB native units (nanosecs)
+<watchman-prefix>.transaction.duration, with tags: [repo_name, table_name, "total"]
+```
