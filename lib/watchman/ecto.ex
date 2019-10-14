@@ -37,7 +37,7 @@ defmodule Watchman.Ecto do
     spawn(fn ->
       table  = entry.source || "unknown"
       queue  = entry.queue_time || 0
-      query  = entry.queue_time || 0
+      query  = entry.query_time || 0
       decode = entry.decode_time || 0
       total  = queue + query + decode
 
