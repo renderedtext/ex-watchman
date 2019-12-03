@@ -6,7 +6,8 @@ defmodule Watchman.Server do
     state = %{
       host: options[:host] || Application.get_env(:watchman, :host),
       port: options[:port] || Application.get_env(:watchman, :port),
-      prefix: options[:prefix] || Application.get_env(:watchman, :prefix)
+      prefix: options[:prefix] || Application.get_env(:watchman, :prefix),
+      socket: nil
     }
 
     if state[:host] == nil || state[:host] == "" do
@@ -24,6 +25,10 @@ defmodule Watchman.Server do
     Logger.info "Watchman sending metrics to #{state.host}:#{state.port} with prefix '#{state.prefix}'"
 
     state = %{ state | host: parse_host(state.host) }
+
+    {:ok, socket} = :gen_udp.open(0, [:binary])
+
+    state = %{ state | socket: socket }
 
     GenServer.start_link(__MODULE__, state, [name: __MODULE__])
   end
@@ -48,9 +53,8 @@ defmodule Watchman.Server do
 
   def handle_cast_(name, tag_list, value, type, state) do
     package = statsd_package(state.prefix, name, tag_list |> tags, value, type)
-    {:ok, socket} = :gen_udp.open(0, [:binary])
-    :gen_udp.send(socket, state.host, state.port, package)
-    :gen_udp.close(socket)
+
+    :gen_udp.send(state.socket, state.host, state.port, package)
 
     {:noreply, state}
   end
