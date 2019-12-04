@@ -13,7 +13,7 @@ defmodule Watchman do
   end
 
   def submit(name, value, type \\ :gauge) do
-    GenServer.cast(Watchman.Server, {:send, name, value, type})
+    Watchman.Server.submit(name, value, type)
   end
 
   def increment(name) do

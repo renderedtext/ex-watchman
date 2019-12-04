@@ -1,15 +1,10 @@
 defmodule WatchmanHeartbeatTest do
-  use ExUnit.Case
-
-  @test_port 8125
-
-  setup do
-    TestUDPServer.start_link(port: @test_port)
-
-    :ok
-  end
+  use ExUnit.Case, async: false
 
   test "heartbeat test" do
+    TestUDPServer.wait_for_clean_message_box()
+    TestUDPServer.flush()
+
     {:ok, hb} = Watchman.Heartbeat.start_link([interval: 1])
     :timer.sleep(5000)
 

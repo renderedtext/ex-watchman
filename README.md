@@ -37,12 +37,15 @@ config :watchman,
 ## Usage
 
 Never name metric with variable:
+
 ```elixir
 Watchman.submit("user.#{id}.count", 30)
 ```
+
 If you need something like that, you probably need [tags](#tags)!
 
 ### Heartbeat
+
 To keep track if the application is running, use the heartbeat feature. Define
 a child process in the supervisor with a defined interval between notifications
 (in seconds), like so:
@@ -253,4 +256,26 @@ When set up, this will generate the following metrics:
 
 5. total time spend for the transaction in DB native units (nanosecs)
 <watchman-prefix>.transaction.duration, with tags: [repo_name, table_name, "total"]
+```
+
+## Advanced configuration
+
+### Buffer Size
+
+Watchman has a limited buffer size for unprocessed messages (metrics that are
+waiting to be submitted via UDP).
+
+This limit is set in order to avoid accidental accumulation of messages in
+Watchman.Server's message box.
+
+The default value is unprocessed 10_000 messages.
+
+To change the default value, set a new value in the config:
+
+``` elixir
+config :watchman,
+  host: "statistics.example.com",
+  port: 22001,
+  prefix: "my-service.prod"
+  max_buffer_size: 50            # <----- sets the buffer to 50 messages
 ```
