@@ -54,7 +54,15 @@ defmodule Watchman.Server do
   def handle_cast_(name, tag_list, value, type, state) do
     package = statsd_package(state.prefix, name, tag_list |> tags, value, type)
 
-    :gen_udp.send(state.socket, state.host, state.port, package)
+    t = :timer.tc(fn ->
+      # {:ok, socket} = :gen_udp.open(0, [:binary])
+
+      :gen_udp.send(state.socket, state.host, state.port, package)
+
+      # :gen_udp.close(socket)
+    end)
+
+    IO.inspect("gen_udp.send took: #{elem(t, 0) / 1000} ms")
 
     {:noreply, state}
   end

@@ -105,4 +105,15 @@ defmodule WatchmanTest do
       "tagged.watchman.test.no_tag.no_tag.no_tag.because.of.the.implication:1|c"
   end
 
+  test "sending metrics to a broken statsd" do
+    Enum.each(1..1000, fn _ ->
+      Watchman.increment("increment")
+    end)
+
+    :timer.sleep(1000)
+
+    pid = Process.whereis(Watchman.Server)
+    assert Process.info(pid, :message_queue_len) == {:message_queue_len, 0}
+  end
+
 end
