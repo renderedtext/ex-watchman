@@ -2,5 +2,5 @@ use Mix.Config
 
 config :watchman,
   host: "localhost",
-  port: 8129,
+  port: 8125,
   prefix: "watchman.test"

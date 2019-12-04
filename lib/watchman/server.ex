@@ -37,6 +37,26 @@ defmodule Watchman.Server do
     GenServer.call(__MODULE__, :stop)
   end
 
+  def max_buffer_size do
+    Application.get_env(:watchman, :max_buffer_size) || 10000
+  end
+
+  def buffer_size do
+    pid = Process.whereis(__MODULE__)
+
+    {:message_queue_len, len} = Process.info(pid, :message_queue_len)
+
+    len
+  end
+
+  def submit(name, value, type) do
+    if buffer_size() < max_buffer_size() - 1 do
+      GenServer.cast(__MODULE__, {:send, name, value, type})
+    else
+      :ok
+    end
+  end
+
   defp parse_host(host) when is_binary(host) do
     case host |> to_char_list |> :inet.parse_address do
       {:error, _}    -> host |> String.to_atom
@@ -54,15 +74,7 @@ defmodule Watchman.Server do
   def handle_cast_(name, tag_list, value, type, state) do
     package = statsd_package(state.prefix, name, tag_list |> tags, value, type)
 
-    t = :timer.tc(fn ->
-      # {:ok, socket} = :gen_udp.open(0, [:binary])
-
-      :gen_udp.send(state.socket, state.host, state.port, package)
-
-      # :gen_udp.close(socket)
-    end)
-
-    IO.inspect("gen_udp.send took: #{elem(t, 0) / 1000} ms")
+    :gen_udp.send(state.socket, state.host, state.port, package)
 
     {:noreply, state}
   end

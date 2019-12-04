@@ -1,14 +1,6 @@
 defmodule Watchman.BenchmarkTest do
-  use ExUnit.Case
+  use ExUnit.Case, async: false
   use Watchman.Benchmark
-
-  @test_port 8125
-
-  setup do
-    TestUDPServer.start_link(port: @test_port)
-
-    :ok
-  end
 
   @benchmark(key: :auto)
   def simple1 do
@@ -37,34 +29,46 @@ defmodule Watchman.BenchmarkTest do
   end
 
   test "benchmark annotation auto key test" do
+    TestUDPServer.wait_for_clean_message_box()
+    TestUDPServer.flush()
+
     simple1
 
-    :timer.sleep(500)
+    :timer.sleep(1000)
 
     assert TestUDPServer.last_message =~ ~r/watchman.test.watchman.benchmark_test.simple:10\d\d|ms/
   end
 
   test "benchmark annotation manual key test" do
+    TestUDPServer.wait_for_clean_message_box()
+    TestUDPServer.flush()
+
     simple2
 
-    :timer.sleep(500)
+    :timer.sleep(1000)
 
     assert TestUDPServer.last_message =~ ~r/watchman.test.watchman.benchmark_test.charlie:10\d\d|ms/
   end
 
   test "function returns the proper return value" do
+    TestUDPServer.wait_for_clean_message_box()
+    TestUDPServer.flush()
+
     result = add(1, 2)
 
-    :timer.sleep(500)
+    :timer.sleep(1000)
 
     assert TestUDPServer.last_message =~ ~r/watchman.test.watchman.benchmark_test.add:\d*|ms/
     assert result == 3
   end
 
   test "function guards" do
+    TestUDPServer.wait_for_clean_message_box()
+    TestUDPServer.flush()
+
     result = sum(3, 5)
 
-    :timer.sleep(500)
+    :timer.sleep(1000)
 
     assert TestUDPServer.last_message =~ ~r/watchman.test.watchman.benchmark_test.sum:\d*|ms/
     assert result == 8
