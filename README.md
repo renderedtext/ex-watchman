@@ -1,6 +1,6 @@
 # Watchman
 
-AAAAA
+HELLO
 
 Watchman is your friend who monitors your processes so you don't have to.
 
