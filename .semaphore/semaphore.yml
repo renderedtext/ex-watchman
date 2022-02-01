@@ -1,0 +1,15 @@
+version: v1.0
+name: Test
+
+agent:
+  machine:
+    type: e1-standard-2
+    
+blocks:
+  - name: A
+    task:
+      jobs:
+        - name: A
+          commands:
+            - touch a.txt
+            - artifact push project a.txt
