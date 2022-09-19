@@ -7,7 +7,8 @@ defmodule Watchman.Server do
       host: options[:host] || Application.get_env(:watchman, :host),
       port: options[:port] || Application.get_env(:watchman, :port),
       prefix: options[:prefix] || Application.get_env(:watchman, :prefix),
-      socket: nil
+      socket: nil,
+      whitelist: options[:whitelist] || Application.get_env(:watchman, :whitelist, ".*")
     }
 
     if state[:host] == nil || state[:host] == "" do
@@ -22,15 +23,21 @@ defmodule Watchman.Server do
       raise "Watchman Prefix is not defined"
     end
 
-    Logger.info "Watchman sending metrics to #{state.host}:#{state.port} with prefix '#{state.prefix}'"
+    Logger.info(
+      "Watchman sending metrics to #{state.host}:#{state.port} with prefix '#{state.prefix}'"
+    )
 
     state = %{ state | host: parse_host(state.host) }
 
     {:ok, socket} = :gen_udp.open(0, [:binary])
 
-    state = %{ state | socket: socket }
+    state = %{state | socket: socket}
 
-    GenServer.start_link(__MODULE__, state, [name: __MODULE__])
+    regex = Regex.compile!(state.whitelist)
+
+    state = %{state | whitelist: regex}
+
+    GenServer.start_link(__MODULE__, state, name: __MODULE__)
   end
 
   def stop do
@@ -58,8 +65,8 @@ defmodule Watchman.Server do
   end
 
   defp parse_host(host) when is_binary(host) do
-    case host |> to_char_list |> :inet.parse_address do
-      {:error, _}    -> host |> String.to_atom
+    case host |> to_char_list |> :inet.parse_address() do
+      {:error, _} -> host |> String.to_atom()
       {:ok, address} -> address
     end
   end
@@ -67,15 +74,18 @@ defmodule Watchman.Server do
   def handle_cast({:send, {name, tags}, value, type}, state) when is_list(tags) do
     handle_cast_(name, tags, value, type, state)
   end
+
   def handle_cast({:send, name, value, type}, state) do
     handle_cast_(name, [], value, type, state)
   end
 
   def handle_cast_(name, tag_list, value, type, state) do
-    package = statsd_package(state.prefix, name, tag_list |> tags, value, type)
+    if String.match?(name, state.whitelist) do
+      IO.inspect(state)
+      package = statsd_package(state.prefix, name, tag_list |> tags, value, type)
 
-    :gen_udp.send(state.socket, state.host, state.port, package)
-
+      :gen_udp.send(state.socket, state.host, state.port, package)
+    end
     {:noreply, state}
   end
 
@@ -93,9 +103,8 @@ defmodule Watchman.Server do
 
   @no_tag ~w(no_tag no_tag no_tag)
   defp tags(tag_list) do
-    tag_list ++ @no_tag
+    (tag_list ++ @no_tag)
     |> Enum.take(3)
     |> Enum.join(".")
   end
-
 end
