@@ -163,7 +163,6 @@ defmodule WatchmanTest do
 
   describe ".whitelist" do
     setup do
-      # TestHelpers.start_with_opts(whitelist: "^external.*")
       TestUDPServer.wait_for_clean_message_box()
       TestUDPServer.flush()
 
