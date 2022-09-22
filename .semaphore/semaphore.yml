@@ -24,6 +24,6 @@ blocks:
       jobs:
         - name: Elixir code check
           commands:
-            - mix loca.hex --force
+            - mix local.hex --force
             - mix deps.get --only test
             - mix test
