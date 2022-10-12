@@ -161,41 +161,46 @@ defmodule WatchmanTest do
     assert len <= max_buffer_size
   end
 
-  describe ".whitelist" do
+  describe ".external_only" do
     setup do
       TestUDPServer.wait_for_clean_message_box()
       TestUDPServer.flush()
 
+
+      Application.put_env(:watchman, :external_only, true)
       pid = Process.whereis(Watchman.Server)
       Process.exit(pid, :kill)
-      Watchman.Server.start_link([whitelist: "^external.*"])
-
 
       :timer.sleep(1000)
-      # on_exit(fn -> TestHelpers.start_with_opts() end)
+      on_exit(fn ->
+        Application.put_env(:watchman, :external_only, false)
+        pid = Process.whereis(Watchman.Server)
+        Process.exit(pid, :kill)
+       end)
       :ok
     end
 
-    test "watchman server does not forward topic that is not whitelisted" do
+    test "external_only: true, flag not sent => do not forward" do
       TestUDPServer.wait_for_clean_message_box()
       TestUDPServer.flush()
 
       Watchman.Server.buffer_size
-      Watchman.submit("external.user.count", 30)
-
-      :timer.sleep(1000)
-
-      assert TestUDPServer.last_message ==
-              "tagged.watchman.test.no_tag.no_tag.no_tag.external.user.count:30|g"
-
-      TestUDPServer.wait_for_clean_message_box()
-      TestUDPServer.flush()
-
       Watchman.submit("internal.user.count", 30)
 
       :timer.sleep(1000)
 
       assert TestUDPServer.last_message == :nothing
+              # "tagged.watchman.test.no_tag.no_tag.no_tag.internal.user.count:30|g"
+
+      TestUDPServer.wait_for_clean_message_box()
+      TestUDPServer.flush()
+
+      Watchman.submit("internal.user.count", 30, true, :gauge)
+
+      :timer.sleep(1000)
+
+      assert TestUDPServer.last_message ==
+              "tagged.watchman.test.no_tag.no_tag.no_tag.internal.user.count:30|g"
     end
   end
 end

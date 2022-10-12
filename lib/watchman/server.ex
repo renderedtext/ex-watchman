@@ -8,7 +8,7 @@ defmodule Watchman.Server do
       port: options[:port] || Application.get_env(:watchman, :port),
       prefix: options[:prefix] || Application.get_env(:watchman, :prefix),
       socket: nil,
-      whitelist: options[:whitelist] || Application.get_env(:watchman, :whitelist, ".*")
+      external_only: options[:external_only] || Application.get_env(:watchman, :external_only, false)
     }
 
     if state[:host] == nil || state[:host] == "" do
@@ -33,10 +33,6 @@ defmodule Watchman.Server do
 
     state = %{state | socket: socket}
 
-    regex = Regex.compile!(state.whitelist)
-
-    state = %{state | whitelist: regex}
-
     GenServer.start_link(__MODULE__, state, name: __MODULE__)
   end
 
@@ -56,9 +52,9 @@ defmodule Watchman.Server do
     len
   end
 
-  def submit(name, value, type) do
+  def submit(name, value, external, type) do
     if buffer_size() < max_buffer_size() - 1 do
-      GenServer.cast(__MODULE__, {:send, name, value, type})
+      GenServer.cast(__MODULE__, {:send, name, value, external, type})
     else
       :ok
     end
@@ -71,17 +67,16 @@ defmodule Watchman.Server do
     end
   end
 
-  def handle_cast({:send, {name, tags}, value, type}, state) when is_list(tags) do
-    handle_cast_(name, tags, value, type, state)
+  def handle_cast({:send, {name, tags}, value, external, type}, state) when is_list(tags) do
+    handle_cast_(name, tags, value, external, type, state)
   end
 
-  def handle_cast({:send, name, value, type}, state) do
-    handle_cast_(name, [], value, type, state)
+  def handle_cast({:send, name, value, external, type}, state) do
+    handle_cast_(name, [], value, external, type, state)
   end
 
-  def handle_cast_(name, tag_list, value, type, state) do
-    if String.match?(name, state.whitelist) do
-      IO.inspect(state)
+  def handle_cast_(name, tag_list, value, external, type, state) do
+    unless state.external_only && not external do
       package = statsd_package(state.prefix, name, tag_list |> tags, value, type)
 
       :gen_udp.send(state.socket, state.host, state.port, package)
