@@ -159,6 +159,8 @@ defmodule WatchmanTest do
     IO.puts "\nMessage queue len: #{len}"
 
     assert len <= max_buffer_size
+    # allow Watchman.Server time to clear it's buffer
+    :timer.sleep(1000)
   end
 
   describe ".external_only" do

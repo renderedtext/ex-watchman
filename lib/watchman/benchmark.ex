@@ -60,7 +60,7 @@ defmodule Watchman.Benchmark do
     # so that the time taken to execute the function body can be measured
     quote do
       Watchman.benchmark(unquote(benchmark_data.key), fn ->
-        unquote(benchmark_data.body)
+        unquote(Keyword.get(benchmark_data.body, :do))
       end)
     end
   end
