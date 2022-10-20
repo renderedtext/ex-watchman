@@ -2,12 +2,12 @@ defmodule WatchmanTest do
   use ExUnit.Case, async: false
   use Watchman.Count
 
-  @count(key: :auto)
+  @count key: :auto
   def test_function3 do
     :timer.sleep(200)
   end
 
-  @count(key: "because.of.the.implication")
+  @count key: "because.of.the.implication"
   def test_function4 do
     :timer.sleep(200)
   end
@@ -20,8 +20,8 @@ defmodule WatchmanTest do
 
     :timer.sleep(1000)
 
-    assert TestUDPServer.last_message ==
-            "tagged.watchman.test.no_tag.no_tag.no_tag.user.count:30|g"
+    assert TestUDPServer.last_message() ==
+             "tagged.watchman.test.no_tag.no_tag.no_tag.user.count:30|g"
   end
 
   test "submit with timing type" do
@@ -31,8 +31,8 @@ defmodule WatchmanTest do
     Watchman.submit("setup.duration", 30, :timing)
     :timer.sleep(1000)
 
-    assert TestUDPServer.last_message ==
-            "tagged.watchman.test.no_tag.no_tag.no_tag.setup.duration:30|ms"
+    assert TestUDPServer.last_message() ==
+             "tagged.watchman.test.no_tag.no_tag.no_tag.setup.duration:30|ms"
   end
 
   test "submit with counter type - 1 tag" do
@@ -42,8 +42,8 @@ defmodule WatchmanTest do
     Watchman.submit({"setup.duration", [:tag]}, 30, :count)
     :timer.sleep(1000)
 
-    assert TestUDPServer.last_message ==
-            "tagged.watchman.test.tag.no_tag.no_tag.setup.duration:30|c"
+    assert TestUDPServer.last_message() ==
+             "tagged.watchman.test.tag.no_tag.no_tag.setup.duration:30|c"
   end
 
   test "submit with counter type - 3 tags" do
@@ -53,8 +53,8 @@ defmodule WatchmanTest do
     Watchman.submit({"setup.duration", [:tag1, :tag2, :tag3]}, 30, :count)
     :timer.sleep(1000)
 
-    assert TestUDPServer.last_message ==
-            "tagged.watchman.test.tag1.tag2.tag3.setup.duration:30|c"
+    assert TestUDPServer.last_message() ==
+             "tagged.watchman.test.tag1.tag2.tag3.setup.duration:30|c"
   end
 
   test "submit with counter type - 4 tags - dissregarded" do
@@ -64,8 +64,8 @@ defmodule WatchmanTest do
     Watchman.submit({"setup.duration", [:tag1, :tag2, :tag3]}, 30, :count)
     :timer.sleep(1000)
 
-    assert TestUDPServer.last_message ==
-            "tagged.watchman.test.tag1.tag2.tag3.setup.duration:30|c"
+    assert TestUDPServer.last_message() ==
+             "tagged.watchman.test.tag1.tag2.tag3.setup.duration:30|c"
   end
 
   test "increment with counter type" do
@@ -75,8 +75,8 @@ defmodule WatchmanTest do
     Watchman.increment("increment")
     :timer.sleep(1000)
 
-    assert TestUDPServer.last_message ==
-            "tagged.watchman.test.no_tag.no_tag.no_tag.increment:1|c"
+    assert TestUDPServer.last_message() ==
+             "tagged.watchman.test.no_tag.no_tag.no_tag.increment:1|c"
   end
 
   test "decrement with counter type" do
@@ -86,8 +86,8 @@ defmodule WatchmanTest do
     Watchman.decrement("decrement")
     :timer.sleep(1000)
 
-    assert TestUDPServer.last_message ==
-            "tagged.watchman.test.no_tag.no_tag.no_tag.decrement:-1|c"
+    assert TestUDPServer.last_message() ==
+             "tagged.watchman.test.no_tag.no_tag.no_tag.decrement:-1|c"
   end
 
   test "benchmark code execution" do
@@ -100,7 +100,7 @@ defmodule WatchmanTest do
 
     :timer.sleep(1000)
 
-    assert TestUDPServer.last_message =~ ~r/watchman.test.sleep.duration:5\d\d|ms/
+    assert TestUDPServer.last_message() =~ ~r/watchman.test.sleep.duration:5\d\d|ms/
   end
 
   test "count annotation auto key test" do
@@ -111,8 +111,8 @@ defmodule WatchmanTest do
 
     :timer.sleep(1000)
 
-    assert TestUDPServer.last_message ==
-      "tagged.watchman.test.no_tag.no_tag.no_tag.watchman_test.test_function3:1|c"
+    assert TestUDPServer.last_message() ==
+             "tagged.watchman.test.no_tag.no_tag.no_tag.watchman_test.test_function3:1|c"
   end
 
   test "count annotation manual key test" do
@@ -123,26 +123,27 @@ defmodule WatchmanTest do
 
     :timer.sleep(1000)
 
-    assert TestUDPServer.last_message ==
-      "tagged.watchman.test.no_tag.no_tag.no_tag.because.of.the.implication:1|c"
+    assert TestUDPServer.last_message() ==
+             "tagged.watchman.test.no_tag.no_tag.no_tag.because.of.the.implication:1|c"
   end
 
   test "submitting metrics to watchman is fast" do
     TestUDPServer.wait_for_clean_message_box()
     TestUDPServer.flush()
 
-    {time, :ok} = :timer.tc(fn ->
-      Enum.each(1..1000, fn _ -> Watchman.increment("increment") end)
-    end)
+    {time, :ok} =
+      :timer.tc(fn ->
+        Enum.each(1..1000, fn _ -> Watchman.increment("increment") end)
+      end)
 
-    IO.puts "\nSubmiting to watchman took: #{time}ms"
+    IO.puts("\nSubmiting to watchman took: #{time}ms")
 
     #
     # submitting 1000 metrics should take less then a 5 miliseconds
     #
     # We only want a referent duration here that is acceptable.
     #
-    assert time/1000 < 5
+    assert time / 1000 < 5
   end
 
   test "watchman server has an upper limit of metrics" do
@@ -152,48 +153,51 @@ defmodule WatchmanTest do
     max_buffer_size = Watchman.Server.max_buffer_size()
     pid = Process.whereis(Watchman.Server)
 
-    Enum.each(1..(max_buffer_size*5), fn _ -> Watchman.increment("increment") end)
+    Enum.each(1..(max_buffer_size * 5), fn _ -> Watchman.increment("increment") end)
 
     {:message_queue_len, len} = Process.info(pid, :message_queue_len)
 
-    IO.puts "\nMessage queue len: #{len}"
+    IO.puts("\nMessage queue len: #{len}")
 
     assert len <= max_buffer_size
     # allow Watchman.Server time to clear it's buffer
     :timer.sleep(1000)
   end
 
-  describe ".external_only" do
+  describe ".external_only true" do
     setup do
       TestUDPServer.wait_for_clean_message_box()
       TestUDPServer.flush()
-
 
       Application.put_env(:watchman, :external_only, true)
       pid = Process.whereis(Watchman.Server)
       Process.exit(pid, :kill)
 
       :timer.sleep(1000)
+
       on_exit(fn ->
         Application.put_env(:watchman, :external_only, false)
         pid = Process.whereis(Watchman.Server)
         Process.exit(pid, :kill)
-       end)
+      end)
+
       :ok
     end
 
-    test "external_only: true, flag not sent => do not forward" do
+    test "flag not sent => do not forward" do
       TestUDPServer.wait_for_clean_message_box()
       TestUDPServer.flush()
 
-      Watchman.Server.buffer_size
+      Watchman.Server.buffer_size()
       Watchman.submit("internal.user.count", 30)
 
       :timer.sleep(1000)
 
-      assert TestUDPServer.last_message == :nothing
-              # "tagged.watchman.test.no_tag.no_tag.no_tag.internal.user.count:30|g"
+      assert TestUDPServer.last_message() == :nothing
+      # "tagged.watchman.test.no_tag.no_tag.no_tag.internal.user.count:30|g"
+    end
 
+    test "flag true => forward" do
       TestUDPServer.wait_for_clean_message_box()
       TestUDPServer.flush()
 
@@ -201,8 +205,77 @@ defmodule WatchmanTest do
 
       :timer.sleep(1000)
 
-      assert TestUDPServer.last_message ==
-              "tagged.watchman.test.no_tag.no_tag.no_tag.internal.user.count:30|g"
+      assert TestUDPServer.last_message() ==
+               "tagged.watchman.test.no_tag.no_tag.no_tag.internal.user.count:30|g"
+    end
+
+    test "flag false => do not forward" do
+      TestUDPServer.wait_for_clean_message_box()
+      TestUDPServer.flush()
+
+      Watchman.submit("internal.user.count", 30, false, :gauge)
+
+      :timer.sleep(1000)
+
+      assert TestUDPServer.last_message() == :nothing
+    end
+  end
+
+  describe ".external_only false" do
+    setup do
+      TestUDPServer.wait_for_clean_message_box()
+      TestUDPServer.flush()
+
+      Application.put_env(:watchman, :external_only, false)
+      pid = Process.whereis(Watchman.Server)
+      Process.exit(pid, :kill)
+
+      :timer.sleep(1000)
+
+      on_exit(fn ->
+        Application.put_env(:watchman, :external_only, false)
+        pid = Process.whereis(Watchman.Server)
+        Process.exit(pid, :kill)
+      end)
+
+      :ok
+    end
+
+    test "flag not sent => forward" do
+      TestUDPServer.wait_for_clean_message_box()
+      TestUDPServer.flush()
+
+      Watchman.Server.buffer_size()
+      Watchman.submit("internal.user.count", 30)
+
+      :timer.sleep(1000)
+
+      assert TestUDPServer.last_message() ==
+               "tagged.watchman.test.no_tag.no_tag.no_tag.internal.user.count:30|g"
+    end
+
+    test "flag true => forward" do
+      TestUDPServer.wait_for_clean_message_box()
+      TestUDPServer.flush()
+
+      Watchman.submit("internal.user.count", 30, true, :gauge)
+
+      :timer.sleep(1000)
+
+      assert TestUDPServer.last_message() ==
+               "tagged.watchman.test.no_tag.no_tag.no_tag.internal.user.count:30|g"
+    end
+
+    test "flag false => forward" do
+      TestUDPServer.wait_for_clean_message_box()
+      TestUDPServer.flush()
+
+      Watchman.submit("internal.user.count", 30, false, :gauge)
+
+      :timer.sleep(1000)
+
+      assert TestUDPServer.last_message() ==
+               "tagged.watchman.test.no_tag.no_tag.no_tag.internal.user.count:30|g"
     end
   end
 end
