@@ -9,6 +9,9 @@ defmodule Watchman do
     ]
 
     opts = [strategy: :one_for_one, name: __MODULE__]
+    opts = if Mix.env() == :test do
+      Keyword.put_new(opts, :max_restarts, 10)
+    end
     Supervisor.start_link(children, opts)
   end
 

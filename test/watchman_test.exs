@@ -179,6 +179,7 @@ defmodule WatchmanTest do
         Application.put_env(:watchman, :external_only, false)
         pid = Process.whereis(Watchman.Server)
         Process.exit(pid, :kill)
+        :timer.sleep(500)
       end)
 
       :ok
@@ -188,13 +189,11 @@ defmodule WatchmanTest do
       TestUDPServer.wait_for_clean_message_box()
       TestUDPServer.flush()
 
-      Watchman.Server.buffer_size()
       Watchman.submit("internal.user.count", 30)
 
       :timer.sleep(1000)
 
       assert TestUDPServer.last_message() == :nothing
-      # "tagged.watchman.test.no_tag.no_tag.no_tag.internal.user.count:30|g"
     end
 
     test "flag true => forward" do
@@ -236,6 +235,7 @@ defmodule WatchmanTest do
         Application.put_env(:watchman, :external_only, false)
         pid = Process.whereis(Watchman.Server)
         Process.exit(pid, :kill)
+        :timer.sleep(500)
       end)
 
       :ok
@@ -245,7 +245,6 @@ defmodule WatchmanTest do
       TestUDPServer.wait_for_clean_message_box()
       TestUDPServer.flush()
 
-      Watchman.Server.buffer_size()
       Watchman.submit("internal.user.count", 30)
 
       :timer.sleep(1000)
