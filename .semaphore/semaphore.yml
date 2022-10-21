@@ -1,0 +1,29 @@
+version: v1.0
+name: Build & Test
+agent:
+  machine:
+    type: e1-standard-2
+    os_image: ubuntu1804
+auto_cancel:
+  running:
+    when: 'true'
+global_job_config:
+  prologue:
+    commands:
+      - checkout
+blocks:
+  - name: Tests
+    dependencies: []
+    task:
+      epilogue:
+        always:
+          commands:
+            - if [ -f assets/results.xml ]; then mv assets/results.xml results.xml; fi
+            - if [ -f results.xml ]; then test-results publish results.xml; fi
+
+      jobs:
+        - name: Elixir code check
+          commands:
+            - mix local.hex --force
+            - mix deps.get --only test
+            - mix test
