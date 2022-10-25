@@ -26,4 +26,4 @@ blocks:
           commands:
             - mix local.hex --force
             - mix deps.get --only test
-            - mix test
+            - mix test --no-start
