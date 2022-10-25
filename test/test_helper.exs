@@ -56,5 +56,6 @@ defmodule TestUDPServer do
 end
 
 TestUDPServer.start_link()
+Watchman.start(nil, [max_restarts: 10])
 
 ExUnit.start(trace: true)

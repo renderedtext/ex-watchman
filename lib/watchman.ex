@@ -1,7 +1,7 @@
 defmodule Watchman do
   use Application
 
-  def start(_type, _args) do
+  def start(_type, args) do
     import Supervisor.Spec, warn: false
 
     children = [
@@ -9,9 +9,8 @@ defmodule Watchman do
     ]
 
     opts = [strategy: :one_for_one, name: __MODULE__]
-    opts = if Mix.env() == :test do
-      Keyword.put_new(opts, :max_restarts, 10)
-    end
+    opts = Keyword.merge(opts, args)
+
     Supervisor.start_link(children, opts)
   end
 
