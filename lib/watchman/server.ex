@@ -76,12 +76,19 @@ defmodule Watchman.Server do
   end
 
   def handle_cast_(name, tag_list, value, external, type, state) do
-    unless state.external_only && not external do
+    if should_publish(state.external_only, external) do
       package = statsd_package(state.prefix, name, tag_list |> tags, value, type)
 
       :gen_udp.send(state.socket, state.host, state.port, package)
     end
     {:noreply, state}
+  end
+
+  defp should_publish(external_only, current) do
+    case external_only do
+      false -> current in [:internal, :always]
+      true -> current in [:external, :always]
+    end
   end
 
   defp statsd_package(prefix, name, tags, value, :gauge) do
