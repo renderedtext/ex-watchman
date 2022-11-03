@@ -14,28 +14,49 @@ defmodule Watchman do
     Supervisor.start_link(children, opts)
   end
 
-  def submit(name, value, type \\ :gauge) do
-    Watchman.Server.submit(name, value, :internal, type)
+  def submit(name, value, type \\ :gauge)
+
+  def submit({external, name}, value, type) when external in [:internal, :external, :always] do
+    Watchman.Server.submit([{external, name}], value, type)
   end
 
-  def submit(name, value, external, type) when external in [:internal, :external, :always]  do
-    Watchman.Server.submit(name, value, external, type)
+  def submit(name_list, value, type) when is_list(name_list) do
+    Watchman.Server.submit(name_list, value, type)
   end
 
-  def increment(name), do: increment(name, :internal)
-  def increment(name, external) do
-    submit(name, 1, external, :count)
+  def submit(name, value, type) do
+    Watchman.Server.submit([{:internal, name}], value, type)
   end
 
-  def decrement(name), do: decrement(name, :internal)
-  def decrement(name, external) do
-    submit(name, -1, external, :count)
+  def increment(name_list) when is_list(name_list) do
+    submit(name_list, 1, :count)
   end
 
-  def benchmark(name, function), do: benchmark(name, :internal, function)
-  def benchmark(name, external, function) when external in [:internal, :external, :always] do
-    {duration, result} = function |> :timer.tc
-    submit(name, div(duration, 1000), external, :timing)
+  def increment({external, name}) when external in [:internal, :external, :always] do
+    submit([{external, name}], 1, :count)
+  end
+
+  def increment(name), do: increment({:internal, name})
+
+  def decrement(name_list) when is_list(name_list) do
+    submit(name_list, -1, :count)
+  end
+
+  def decrement(name = {type, _}) when type in [:internal, :external, :always] do
+    submit([name], -1, :count)
+  end
+
+  def decrement(name), do: decrement({:internal, name})
+
+  def benchmark(name_list, function) when is_list(name_list) do
+    {duration, result} = function |> :timer.tc()
+    submit(name_list, div(duration, 1000), :timing)
     result
   end
+
+  def benchmark(name = {type, _}, function) when type in [:internal, :external, :always] do
+    benchmark([name], function)
+  end
+
+  def benchmark(name, function), do: benchmark({:internal, name}, function)
 end

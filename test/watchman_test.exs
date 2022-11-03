@@ -200,7 +200,7 @@ defmodule WatchmanTest do
       TestUDPServer.wait_for_clean_message_box()
       TestUDPServer.flush()
 
-      Watchman.submit("internal.user.count", 31, :always, :gauge)
+      Watchman.submit({:always, "internal.user.count"}, 31)
 
       :timer.sleep(1000)
 
@@ -212,23 +212,35 @@ defmodule WatchmanTest do
       TestUDPServer.wait_for_clean_message_box()
       TestUDPServer.flush()
 
-      Watchman.submit("internal.user.count", 30, :external, :gauge)
+      Watchman.submit({:external, "external.user.count"}, 30)
 
       :timer.sleep(1000)
 
       assert TestUDPServer.last_message() ==
-               "tagged.watchman.test.no_tag.no_tag.no_tag.internal.user.count:30|g"
+               "tagged.watchman.test.no_tag.no_tag.no_tag.external.user.count:30|g"
     end
 
     test "flag :internal => do not forward" do
       TestUDPServer.wait_for_clean_message_box()
       TestUDPServer.flush()
 
-      Watchman.submit("internal.user.count", 30, :internal, :gauge)
+      Watchman.submit({:internal, "internal.user.count"}, 30)
 
       :timer.sleep(1000)
 
       assert TestUDPServer.last_message() == :nothing
+    end
+
+    test "both :internal and external => forward and use external name" do
+      TestUDPServer.wait_for_clean_message_box()
+      TestUDPServer.flush()
+
+      Watchman.submit([internal: "internal.user.count", external: "external.user.count"], 30)
+
+      :timer.sleep(1000)
+
+      assert TestUDPServer.last_message() ==
+        "tagged.watchman.test.no_tag.no_tag.no_tag.external.user.count:30|g"
     end
   end
 
@@ -269,7 +281,7 @@ defmodule WatchmanTest do
       TestUDPServer.wait_for_clean_message_box()
       TestUDPServer.flush()
 
-      Watchman.submit("internal.user.count", 30, :always, :gauge)
+      Watchman.submit({:always, "internal.user.count"}, 30, :gauge)
 
       :timer.sleep(1000)
 
@@ -281,7 +293,7 @@ defmodule WatchmanTest do
       TestUDPServer.wait_for_clean_message_box()
       TestUDPServer.flush()
 
-      Watchman.submit("internal.user.count", 30, :external, :gauge)
+      Watchman.submit({:external, "internal.user.count"}, 30)
 
       :timer.sleep(1000)
 
@@ -292,7 +304,7 @@ defmodule WatchmanTest do
       TestUDPServer.wait_for_clean_message_box()
       TestUDPServer.flush()
 
-      Watchman.submit("internal.user.count", 30, :internal, :gauge)
+      Watchman.submit({:internal, "internal.user.count"}, 30)
 
       :timer.sleep(1000)
 
