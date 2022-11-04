@@ -164,19 +164,19 @@ defmodule WatchmanTest do
     :timer.sleep(1000)
   end
 
-  describe ".external_only true" do
+  describe ".send_only :external" do
     setup do
       TestUDPServer.wait_for_clean_message_box()
       TestUDPServer.flush()
 
-      Application.put_env(:watchman, :external_only, true)
+      Application.put_env(:watchman, :send_only, :external)
       pid = Process.whereis(Watchman.Server)
       Process.exit(pid, :kill)
 
       :timer.sleep(1000)
 
       on_exit(fn ->
-        Application.put_env(:watchman, :external_only, false)
+        Application.put_env(:watchman, :send_only, :internal)
         pid = Process.whereis(Watchman.Server)
         Process.exit(pid, :kill)
         :timer.sleep(500)
@@ -196,43 +196,91 @@ defmodule WatchmanTest do
       assert TestUDPServer.last_message() == :nothing
     end
 
-    test "flag true => forward" do
+    test "flag :always => forward" do
       TestUDPServer.wait_for_clean_message_box()
       TestUDPServer.flush()
 
-      Watchman.submit("internal.user.count", 30, true, :gauge)
+      Watchman.submit({:always, "internal.user.count"}, 31)
 
       :timer.sleep(1000)
 
       assert TestUDPServer.last_message() ==
-               "tagged.watchman.test.no_tag.no_tag.no_tag.internal.user.count:30|g"
+               "tagged.watchman.test.no_tag.no_tag.no_tag.internal.user.count:31|g"
     end
 
-    test "flag false => do not forward" do
+    test "flag :external => forward" do
       TestUDPServer.wait_for_clean_message_box()
       TestUDPServer.flush()
 
-      Watchman.submit("internal.user.count", 30, false, :gauge)
+      Watchman.submit({:external, "external.user.count"}, 30)
+
+      :timer.sleep(1000)
+
+      assert TestUDPServer.last_message() ==
+               "tagged.watchman.test.no_tag.no_tag.no_tag.external.user.count:30|g"
+    end
+
+    test "flag :internal => do not forward" do
+      TestUDPServer.wait_for_clean_message_box()
+      TestUDPServer.flush()
+
+      Watchman.submit({:internal, "internal.user.count"}, 30)
 
       :timer.sleep(1000)
 
       assert TestUDPServer.last_message() == :nothing
     end
+
+    test "both :internal and external => forward and use external name" do
+      TestUDPServer.wait_for_clean_message_box()
+      TestUDPServer.flush()
+
+      Watchman.submit([internal: "internal.user.count", external: "external.user.count"], 30)
+
+      :timer.sleep(1000)
+
+      assert TestUDPServer.last_message() ==
+        "tagged.watchman.test.no_tag.no_tag.no_tag.external.user.count:30|g"
+    end
+
+    test "flag :external with tags => forward with flags" do
+      TestUDPServer.wait_for_clean_message_box()
+      TestUDPServer.flush()
+
+      Watchman.submit({:external, {"external.user.count", ["first_tag", "zwei_tag"]}}, 50)
+
+      :timer.sleep(1000)
+
+      assert TestUDPServer.last_message() ==
+        "tagged.watchman.test.first_tag.zwei_tag.no_tag.external.user.count:50|g"
+    end
+
+    test "flag :external with tags, :internal with no flags => forward with flags" do
+      TestUDPServer.wait_for_clean_message_box()
+      TestUDPServer.flush()
+
+      Watchman.submit([internal: "internal.user.count", external: {"external.user.count", ["first_tag", "zwei_tag"]}], 50)
+
+      :timer.sleep(1000)
+
+      assert TestUDPServer.last_message() ==
+        "tagged.watchman.test.first_tag.zwei_tag.no_tag.external.user.count:50|g"
+    end
   end
 
-  describe ".external_only false" do
+  describe ".send_only false" do
     setup do
       TestUDPServer.wait_for_clean_message_box()
       TestUDPServer.flush()
 
-      Application.put_env(:watchman, :external_only, false)
+      Application.put_env(:watchman, :send_only, :internal)
       pid = Process.whereis(Watchman.Server)
       Process.exit(pid, :kill)
 
       :timer.sleep(1000)
 
       on_exit(fn ->
-        Application.put_env(:watchman, :external_only, false)
+        Application.put_env(:watchman, :send_only, :internal)
         pid = Process.whereis(Watchman.Server)
         Process.exit(pid, :kill)
         :timer.sleep(500)
@@ -253,11 +301,11 @@ defmodule WatchmanTest do
                "tagged.watchman.test.no_tag.no_tag.no_tag.internal.user.count:30|g"
     end
 
-    test "flag true => forward" do
+    test "flag :always => forward" do
       TestUDPServer.wait_for_clean_message_box()
       TestUDPServer.flush()
 
-      Watchman.submit("internal.user.count", 30, true, :gauge)
+      Watchman.submit({:always, "internal.user.count"}, 30, :gauge)
 
       :timer.sleep(1000)
 
@@ -265,16 +313,39 @@ defmodule WatchmanTest do
                "tagged.watchman.test.no_tag.no_tag.no_tag.internal.user.count:30|g"
     end
 
-    test "flag false => forward" do
+    test "flag :external => do not forward" do
       TestUDPServer.wait_for_clean_message_box()
       TestUDPServer.flush()
 
-      Watchman.submit("internal.user.count", 30, false, :gauge)
+      Watchman.submit({:external, "internal.user.count"}, 30)
+
+      :timer.sleep(1000)
+
+      assert TestUDPServer.last_message() == :nothing
+    end
+
+    test "flag :internal => forward" do
+      TestUDPServer.wait_for_clean_message_box()
+      TestUDPServer.flush()
+
+      Watchman.submit({:internal, "internal.user.count"}, 30)
 
       :timer.sleep(1000)
 
       assert TestUDPServer.last_message() ==
                "tagged.watchman.test.no_tag.no_tag.no_tag.internal.user.count:30|g"
+    end
+
+    test "flag :external with tags, :internal with no flags => forward without flags" do
+      TestUDPServer.wait_for_clean_message_box()
+      TestUDPServer.flush()
+
+      Watchman.submit([internal: "internal.user.count", external: {"external.user.count", ["first_tag", "zwei_tag"]}], 50)
+
+      :timer.sleep(1000)
+
+      assert TestUDPServer.last_message() ==
+        "tagged.watchman.test.no_tag.no_tag.no_tag.internal.user.count:50|g"
     end
   end
 end

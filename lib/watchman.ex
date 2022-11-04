@@ -14,28 +14,27 @@ defmodule Watchman do
     Supervisor.start_link(children, opts)
   end
 
-  def submit(name, value, type \\ :gauge) do
-    Watchman.Server.submit(name, value, false, type)
+  def submit(name, value, type \\ :gauge)
+
+  def submit({channel, name}, value, type) when channel in [:internal, :external, :always] do
+    Watchman.Server.submit([{channel, name}], value, type)
   end
 
-  def submit(name, value, external, type) do
-    Watchman.Server.submit(name, value, external, type)
+  def submit(names, value, type) when is_list(names) do
+    Watchman.Server.submit(names, value, type)
   end
 
-  def increment(name), do: increment(name, false)
-  def increment(name, external) do
-    submit(name, 1, external, :count)
+  def submit(name, value, type) do
+    Watchman.Server.submit([{:internal, name}], value, type)
   end
 
-  def decrement(name), do: decrement(name, false)
-  def decrement(name, external) do
-    submit(name, -1, external, :count)
-  end
+  def increment(name), do: submit(name, 1, :count)
 
-  def benchmark(name, function), do: benchmark(name, false, function)
-  def benchmark(name, external, function) do
-    {duration, result} = function |> :timer.tc
-    submit(name, div(duration, 1000), external, :timing)
+  def decrement(name), do: submit(name, -1, :count)
+
+  def benchmark(name, function) do
+    {duration, result} = function |> :timer.tc()
+    submit(name, div(duration, 1000), :timing)
     result
   end
 end

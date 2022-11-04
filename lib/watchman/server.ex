@@ -8,7 +8,8 @@ defmodule Watchman.Server do
       port: options[:port] || Application.get_env(:watchman, :port),
       prefix: options[:prefix] || Application.get_env(:watchman, :prefix),
       socket: nil,
-      external_only: options[:external_only] || Application.get_env(:watchman, :external_only, false)
+      send_only:
+        options[:send_only] || Application.get_env(:watchman, :send_only, :internal)
     }
 
     if state[:host] == nil || state[:host] == "" do
@@ -27,7 +28,7 @@ defmodule Watchman.Server do
       "Watchman sending metrics to #{state.host}:#{state.port} with prefix '#{state.prefix}'"
     )
 
-    state = %{ state | host: parse_host(state.host) }
+    state = %{state | host: parse_host(state.host)}
 
     {:ok, socket} = :gen_udp.open(0, [:binary])
 
@@ -52,9 +53,11 @@ defmodule Watchman.Server do
     len
   end
 
-  def submit(name, value, external, type) do
+  def submit(name, value, type) when is_tuple(name), do: submit([name], value, type)
+
+  def submit(name, value, type) do
     if buffer_size() < max_buffer_size() - 1 do
-      GenServer.cast(__MODULE__, {:send, name, value, external, type})
+      GenServer.cast(__MODULE__, {:send, name, value, type})
     else
       :ok
     end
@@ -67,21 +70,32 @@ defmodule Watchman.Server do
     end
   end
 
-  def handle_cast({:send, {name, tags}, value, external, type}, state) when is_list(tags) do
-    handle_cast_(name, tags, value, external, type, state)
-  end
-
-  def handle_cast({:send, name, value, external, type}, state) do
-    handle_cast_(name, [], value, external, type, state)
-  end
-
-  def handle_cast_(name, tag_list, value, external, type, state) do
-    unless state.external_only && not external do
-      package = statsd_package(state.prefix, name, tag_list |> tags, value, type)
-
-      :gen_udp.send(state.socket, state.host, state.port, package)
+  def handle_cast({:send, names, value, type}, state) do
+    if should_publish(state.send_only, names) do
+      name_and_tag = get_name_and_tag(state.send_only, names)
+      handle_cast_(name_and_tag, value, type, state)
     end
+
     {:noreply, state}
+  end
+
+  def handle_cast_(name, value, type, state) when not is_tuple(name) do
+    handle_cast_({name, []}, value, type, state)
+  end
+
+  def handle_cast_({name, tag_list}, value, type, state) do
+    package = statsd_package(state.prefix, name, tag_list |> tags, value, type)
+
+    :gen_udp.send(state.socket, state.host, state.port, package)
+    {:noreply, state}
+  end
+
+  defp should_publish(send_only, names) do
+    Keyword.has_key?(names, send_only) || Keyword.has_key?(names, :always)
+  end
+
+  defp get_name_and_tag(send_only, names) do
+    Keyword.get(names, send_only) || Keyword.get(names, :always)
   end
 
   defp statsd_package(prefix, name, tags, value, :gauge) do
