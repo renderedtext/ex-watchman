@@ -16,47 +16,25 @@ defmodule Watchman do
 
   def submit(name, value, type \\ :gauge)
 
-  def submit({external, name}, value, type) when external in [:internal, :external, :always] do
-    Watchman.Server.submit([{external, name}], value, type)
+  def submit({channel, name}, value, type) when channel in [:internal, :external, :always] do
+    Watchman.Server.submit([{channel, name}], value, type)
   end
 
-  def submit(name_list, value, type) when is_list(name_list) do
-    Watchman.Server.submit(name_list, value, type)
+  def submit(names, value, type) when is_list(names) do
+    Watchman.Server.submit(names, value, type)
   end
 
   def submit(name, value, type) do
     Watchman.Server.submit([{:internal, name}], value, type)
   end
 
-  def increment(name_list) when is_list(name_list) do
-    submit(name_list, 1, :count)
-  end
+  def increment(name), do: submit(name, 1, :count)
 
-  def increment({external, name}) when external in [:internal, :external, :always] do
-    submit([{external, name}], 1, :count)
-  end
+  def decrement(name), do: submit(name, -1, :count)
 
-  def increment(name), do: increment({:internal, name})
-
-  def decrement(name_list) when is_list(name_list) do
-    submit(name_list, -1, :count)
-  end
-
-  def decrement(name = {type, _}) when type in [:internal, :external, :always] do
-    submit([name], -1, :count)
-  end
-
-  def decrement(name), do: decrement({:internal, name})
-
-  def benchmark(name_list, function) when is_list(name_list) do
+  def benchmark(name, function) do
     {duration, result} = function |> :timer.tc()
-    submit(name_list, div(duration, 1000), :timing)
+    submit(name, div(duration, 1000), :timing)
     result
   end
-
-  def benchmark(name = {type, _}, function) when type in [:internal, :external, :always] do
-    benchmark([name], function)
-  end
-
-  def benchmark(name, function), do: benchmark({:internal, name}, function)
 end

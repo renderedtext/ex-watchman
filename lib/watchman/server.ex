@@ -8,8 +8,8 @@ defmodule Watchman.Server do
       port: options[:port] || Application.get_env(:watchman, :port),
       prefix: options[:prefix] || Application.get_env(:watchman, :prefix),
       socket: nil,
-      external_only:
-        options[:external_only] || Application.get_env(:watchman, :external_only, false)
+      send_only:
+        options[:send_only] || Application.get_env(:watchman, :send_only, :internal)
     }
 
     if state[:host] == nil || state[:host] == "" do
@@ -70,9 +70,9 @@ defmodule Watchman.Server do
     end
   end
 
-  def handle_cast({:send, names_list, value, type}, state) do
-    if should_publish(state.external_only, names_list) do
-      name_and_tag = get_name_and_tag(state.external_only, names_list)
+  def handle_cast({:send, names, value, type}, state) do
+    if should_publish(state.send_only, names) do
+      name_and_tag = get_name_and_tag(state.send_only, names)
       handle_cast_(name_and_tag, value, type, state)
     end
 
@@ -90,21 +90,12 @@ defmodule Watchman.Server do
     {:noreply, state}
   end
 
-  defp should_publish(external_only, external) do
-    if external_only do
-      Enum.any?(external, fn e -> elem(e, 0) in [:external, :always] end)
-    else
-      Enum.any?(external, fn e -> elem(e, 0) in [:internal, :always] end)
-    end
+  defp should_publish(send_only, names) do
+    Keyword.has_key?(names, send_only) || Keyword.has_key?(names, :always)
   end
 
-  defp get_name_and_tag(external_only, names_list) do
-    if external_only do
-      Enum.find(names_list, fn e -> elem(e, 0) in [:external, :always] end)
-    else
-      Enum.find(names_list, fn e -> elem(e, 0) in [:internal, :always] end)
-    end
-    |> elem(1)
+  defp get_name_and_tag(send_only, names) do
+    Keyword.get(names, send_only) || Keyword.get(names, :always)
   end
 
   defp statsd_package(prefix, name, tags, value, :gauge) do

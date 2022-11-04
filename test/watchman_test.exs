@@ -164,19 +164,19 @@ defmodule WatchmanTest do
     :timer.sleep(1000)
   end
 
-  describe ".external_only true" do
+  describe ".send_only :external" do
     setup do
       TestUDPServer.wait_for_clean_message_box()
       TestUDPServer.flush()
 
-      Application.put_env(:watchman, :external_only, true)
+      Application.put_env(:watchman, :send_only, :external)
       pid = Process.whereis(Watchman.Server)
       Process.exit(pid, :kill)
 
       :timer.sleep(1000)
 
       on_exit(fn ->
-        Application.put_env(:watchman, :external_only, false)
+        Application.put_env(:watchman, :send_only, :internal)
         pid = Process.whereis(Watchman.Server)
         Process.exit(pid, :kill)
         :timer.sleep(500)
@@ -244,19 +244,19 @@ defmodule WatchmanTest do
     end
   end
 
-  describe ".external_only false" do
+  describe ".send_only false" do
     setup do
       TestUDPServer.wait_for_clean_message_box()
       TestUDPServer.flush()
 
-      Application.put_env(:watchman, :external_only, false)
+      Application.put_env(:watchman, :send_only, :internal)
       pid = Process.whereis(Watchman.Server)
       Process.exit(pid, :kill)
 
       :timer.sleep(1000)
 
       on_exit(fn ->
-        Application.put_env(:watchman, :external_only, false)
+        Application.put_env(:watchman, :send_only, :internal)
         pid = Process.whereis(Watchman.Server)
         Process.exit(pid, :kill)
         :timer.sleep(500)
