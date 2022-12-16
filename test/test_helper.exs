@@ -56,6 +56,7 @@ defmodule TestUDPServer do
 end
 
 TestUDPServer.start_link()
-Watchman.start(nil, [max_restarts: 10])
+Watchman.start(nil, [max_restarts: 20])
+:timer.sleep(3000)
 
 ExUnit.start(trace: true)

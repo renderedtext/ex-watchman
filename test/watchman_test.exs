@@ -169,11 +169,13 @@ defmodule WatchmanTest do
       TestUDPServer.wait_for_clean_message_box()
       TestUDPServer.flush()
 
-      Application.put_env(:watchman, :send_only, :external)
-      pid = Process.whereis(Watchman.Server)
-      Process.exit(pid, :kill)
+      if Application.get_env(:watchman, :send_only) != :external do
+        Application.put_env(:watchman, :send_only, :external)
+        pid = Process.whereis(Watchman.Server)
+        Process.exit(pid, :kill)
 
-      :timer.sleep(1000)
+        :timer.sleep(1000)
+      end
 
       on_exit(fn ->
         Application.put_env(:watchman, :send_only, :internal)
@@ -218,6 +220,18 @@ defmodule WatchmanTest do
 
       assert TestUDPServer.last_message() ==
                "tagged.watchman.test.no_tag.no_tag.no_tag.external.user.count:30|g"
+    end
+
+    test "flag :external, type :timing => forward" do
+      TestUDPServer.wait_for_clean_message_box()
+      TestUDPServer.flush()
+
+      Watchman.submit({:external, "external.user.count"}, 30, :timing)
+
+      :timer.sleep(1000)
+
+      assert TestUDPServer.last_message() ==
+               "tagged.watchman.test.no_tag.no_tag.no_tag.external.user.count:30|ms"
     end
 
     test "flag :internal => do not forward" do
@@ -268,16 +282,18 @@ defmodule WatchmanTest do
     end
   end
 
-  describe ".send_only false" do
+  describe ".send_only :internal" do
     setup do
       TestUDPServer.wait_for_clean_message_box()
       TestUDPServer.flush()
 
-      Application.put_env(:watchman, :send_only, :internal)
-      pid = Process.whereis(Watchman.Server)
-      Process.exit(pid, :kill)
+      if Application.get_env(:watchman, :send_only, :internal) != :internal do
+        Application.put_env(:watchman, :send_only, :internal)
+        pid = Process.whereis(Watchman.Server)
+        Process.exit(pid, :kill)
 
-      :timer.sleep(1000)
+        :timer.sleep(1000)
+      end
 
       on_exit(fn ->
         Application.put_env(:watchman, :send_only, :internal)
@@ -346,6 +362,82 @@ defmodule WatchmanTest do
 
       assert TestUDPServer.last_message() ==
         "tagged.watchman.test.no_tag.no_tag.no_tag.internal.user.count:50|g"
+    end
+  end
+
+  describe ".external_backend: :aws_cloudwatch" do
+    setup do
+      TestUDPServer.wait_for_clean_message_box()
+      TestUDPServer.flush()
+
+      if Application.get_env(:watchman, :external_backend) != :aws_cloudwatch do
+        :timer.sleep(2000)
+        Application.put_env(:watchman, :external_backend, :aws_cloudwatch)
+        pid = Process.whereis(Watchman.Server)
+        Process.exit(pid, :kill)
+
+        :timer.sleep(1000)
+      end
+
+      on_exit(fn ->
+        if Application.get_env(:watchman, :external_backend, :statsd_graphite) != :statsd_graphite do
+          Application.put_env(:watchman, :external_backend, :statsd_graphite)
+          pid = Process.whereis(Watchman.Server)
+          Process.exit(pid, :kill)
+          :timer.sleep(500)
+        end
+      end)
+
+      :ok
+    end
+
+    test "metric without tags => do not add tags" do
+      TestUDPServer.wait_for_clean_message_box()
+      TestUDPServer.flush()
+
+      # Watchman.submit({"setup.duration", [:tag1, :tag2, :tag3]}, 30)
+      Watchman.submit("setup.duration", 30)
+
+      :timer.sleep(200)
+
+      assert TestUDPServer.last_message() ==
+               "watchman.test.setup.duration:30|g"
+    end
+
+    test "metric with unnamed tags => add tags" do
+      TestUDPServer.wait_for_clean_message_box()
+      TestUDPServer.flush()
+
+      Watchman.submit({"setup.duration", [:tag1, :tag2, :tag3]}, 30)
+
+      :timer.sleep(200)
+
+      assert TestUDPServer.last_message() ==
+               "watchman.test.setup.duration:30|g|#tag1:tag1,tag2:tag2,tag3:tag3"
+    end
+
+    test "metric with named tags as keyword list=> add tags" do
+      TestUDPServer.wait_for_clean_message_box()
+      TestUDPServer.flush()
+
+      Watchman.submit({"setup.duration", [tagA: :tag1, tagB: :tag2,tagC: :tag3]}, 30)
+
+      :timer.sleep(200)
+
+      assert TestUDPServer.last_message() ==
+               "watchman.test.setup.duration:30|g|#tagA:tag1,tagB:tag2,tagC:tag3"
+    end
+
+    test "metric with named tags as a map => add tags" do
+      TestUDPServer.wait_for_clean_message_box()
+      TestUDPServer.flush()
+
+      Watchman.submit({"setup.duration", %{tagA: :tag1, tagB: :tag2,tagC: :tag3}}, 30)
+
+      :timer.sleep(200)
+
+      assert TestUDPServer.last_message() ==
+               "watchman.test.setup.duration:30|g|#tagA:tag1,tagB:tag2,tagC:tag3"
     end
   end
 end

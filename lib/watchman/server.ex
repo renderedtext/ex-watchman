@@ -8,8 +8,10 @@ defmodule Watchman.Server do
       port: options[:port] || Application.get_env(:watchman, :port),
       prefix: options[:prefix] || Application.get_env(:watchman, :prefix),
       socket: nil,
-      send_only:
-        options[:send_only] || Application.get_env(:watchman, :send_only, :internal)
+      send_only: options[:send_only] || Application.get_env(:watchman, :send_only, :internal),
+      external_backend:
+        options[:external_backend] ||
+          Application.get_env(:watchman, :external_backend, :statsd_graphite)
     }
 
     if state[:host] == nil || state[:host] == "" do
@@ -84,7 +86,7 @@ defmodule Watchman.Server do
   end
 
   def handle_cast_({name, tag_list}, value, type, state) do
-    package = statsd_package(state.prefix, name, tag_list |> tags, value, type)
+    package = statsd_package(state.prefix, name, tag_list, value, type, state.external_backend)
 
     :gen_udp.send(state.socket, state.host, state.port, package)
     {:noreply, state}
@@ -98,17 +100,35 @@ defmodule Watchman.Server do
     Keyword.get(names, send_only) || Keyword.get(names, :always)
   end
 
-  defp statsd_package(prefix, name, tags, value, :gauge) do
-    "tagged.#{prefix}.#{tags}.#{name}:#{value}|g"
+  defp statsd_package(prefix, name, tag_list, value, type, :statsd_graphite) do
+    tags = tag_list |> tags
+    "tagged.#{prefix}.#{tags}.#{name}:#{value}|" <> metric_type(type)
   end
 
-  defp statsd_package(prefix, name, tags, value, :timing) do
-    "tagged.#{prefix}.#{tags}.#{name}:#{value}|ms"
+  defp statsd_package(prefix, name, tags, value, type, :aws_cloudwatch) do
+    "#{prefix}.#{name}:#{value}|" <> metric_type(type) <> tags_package(tags)
   end
 
-  defp statsd_package(prefix, name, tags, value, :count) do
-    "tagged.#{prefix}.#{tags}.#{name}:#{value}|c"
+  defp tags_package(tags) do
+    tag_str =
+    if Keyword.keyword?(tags) or is_map(tags) do
+      Enum.map(tags, fn {k, v} -> "#{k}:#{v}" end) |> Enum.join(",")
+    else
+      tagger(tags, [], 1)
+      |> Enum.reverse()
+      |> Enum.join(",")
+    end
+    if String.length(tag_str) > 0, do: "|##{tag_str}", else: ""
   end
+
+  defp tagger([], acc, _index), do: acc
+  defp tagger([h | t], acc, index) do
+     tagger(t,["tag#{index}:#{h}" | acc ], index + 1)
+  end
+
+  defp metric_type(:gauge), do: "g"
+  defp metric_type(:timing), do: "ms"
+  defp metric_type(:count), do: "c"
 
   @no_tag ~w(no_tag no_tag no_tag)
   defp tags(tag_list) do
