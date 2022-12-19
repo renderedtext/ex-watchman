@@ -279,3 +279,32 @@ config :watchman,
   prefix: "my-service.prod"
   max_buffer_size: 50            # <----- sets the buffer to 50 messages
 ```
+
+### Metric channels
+
+For filtering and custom metric names in different enviorments of metrics with
+watchman you can set up a `send_only` optional config field with `:internal`, `:external`, and `:always`
+and send your metrics as tuples with channel name in prefix:
+
+``` elixir
+Watchman.increment(external: "user.count")
+Watchman.increment(internal: {"user.count", ["#{id}"]})
+## or you can merge into one
+Watchman.increment(external: "user.count", internal: {"user.count", ["#{id}"]})
+```
+
+### Metrics UDP format
+
+There is two available UDP formats for messages:
+- `:statsd_graphite` suitable for statsd with graphite backend 
+``` elixir
+"tagged.#{prefix}.#{tags}.#{name}:#{value}|#{type}"
+# basic line protocol 
+# <metricname>:<value>|<type>
+```
+- `:aws_cloudwatch` suitable for aws cloudwatch backend
+``` elixir
+"#{prefix}.#{name}:#{value}|#{type}|##{tags}" 
+# evaulates to 
+#MetricName:value|type|@sample_rate|#tag1:value,tag1...
+```
