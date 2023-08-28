@@ -12,7 +12,7 @@ defmodule Watchman.Heartbeat do
   end
 
   def handle_info(message = {:submit_heartbeat, interval, start_time}, :ok) do
-    Watchman.submit("heartbeat", now - start_time, :gauge)
+    Watchman.submit("heartbeat", now() - start_time, :gauge)
 
     :timer.send_after(interval, message)
 
