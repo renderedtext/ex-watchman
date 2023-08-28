@@ -6,7 +6,7 @@ defmodule Watchman.Heartbeat do
   end
 
   def init(args) do
-    send(self(), {:submit_heartbeat, args[:interval] * 1000, now})
+    send(self(), {:submit_heartbeat, args[:interval] * 1000, now()})
 
     {:ok, :ok}
   end
