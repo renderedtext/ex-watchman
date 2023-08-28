@@ -14,7 +14,7 @@ defmodule Watchman.System do
   end
 
   def handle_info(message = {:submit, interval}, :ok) do
-    submit_memory
+    submit_memory()
 
     :timer.send_after(interval, message)
 
