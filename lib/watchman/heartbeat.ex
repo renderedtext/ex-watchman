@@ -19,7 +19,7 @@ defmodule Watchman.Heartbeat do
     {:noreply, :ok}
   end
 
-  defp now do
+  defp now() do
     :calendar.datetime_to_gregorian_seconds(:calendar.universal_time)
   end
 end
