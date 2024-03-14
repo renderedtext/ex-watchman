@@ -21,7 +21,7 @@ defmodule Watchman.System do
     {:noreply, :ok}
   end
 
-  def submit_memory do
+  def submit_memory() do
     Watchman.submit("system.memory.total", :erlang.memory |> Keyword.get(:total))
     Watchman.submit("system.memory.processes", :erlang.memory |> Keyword.get(:processes))
     Watchman.submit("system.memory.processes_used", :erlang.memory |> Keyword.get(:processes_used))
