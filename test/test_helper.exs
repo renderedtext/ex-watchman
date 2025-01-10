@@ -9,7 +9,7 @@ defmodule TestUDPServer do
     if pid do
       {:ok, pid}
     else
-      GenServer.start_link(__MODULE__, [], [name: __MODULE__])
+      GenServer.start_link(__MODULE__, [], name: __MODULE__)
     end
   end
 
@@ -45,18 +45,19 @@ defmodule TestUDPServer do
     {:noreply, [package | messages]}
   end
 
-  def handle_call(:flush, _from, messages) do
+  def handle_call(:flush, _from, _messages) do
     {:reply, nil, [:nothing]}
   end
 
   def handle_call(:last_message, _from, messages) do
-    IO.inspect messages
+    IO.inspect(messages)
     {:reply, hd(messages), messages}
   end
 end
 
 TestUDPServer.start_link()
-Watchman.start(nil, [max_restarts: 20])
+Watchman.start(nil, max_restarts: 20)
 :timer.sleep(3000)
 
+ExUnit.configure(formatters: [JUnitFormatter, ExUnit.CLIFormatter], capture_log: true)
 ExUnit.start(trace: true)

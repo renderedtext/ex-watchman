@@ -1,0 +1,32 @@
+services:
+  app:
+    container_name: ex-watchman
+    build:
+      context: .
+      dockerfile: Dockerfile
+      args:
+        ELIXIR_VERSION: 1.18.1-otp-26
+
+    links:
+      - rabbitmq:rabbitmq
+
+    depends_on:
+      rabbitmq:
+        condition: service_healthy
+
+    environment:
+      AMQP_URL: "amqp://rabbitmq:5672"
+
+    volumes:
+      - ./out:/tmp/out
+
+  rabbitmq:
+    image: rabbitmq:3.11.18-management
+    environment:
+      RABBITMQ_SERVER_ADDITIONAL_ERL_ARGS: "-rabbit log_levels [{connection,error}]"
+    restart: "on-failure"
+    healthcheck:
+      test: rabbitmq-diagnostics -q ping
+      interval: 3s
+      timeout: 3s
+      retries: 5

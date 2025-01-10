@@ -36,5 +36,4 @@ defmodule Watchman.ServerTest do
       Watchman.Server.start_link(host: "a", port: 8888)
     end
   end
-
 end

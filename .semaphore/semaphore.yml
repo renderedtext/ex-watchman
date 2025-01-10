@@ -1,29 +1,52 @@
 version: v1.0
-name: Build & Test
+name: Ex-watchman tests
 agent:
   machine:
-    type: e1-standard-2
-    os_image: ubuntu2004
-auto_cancel:
-  running:
-    when: 'true'
-global_job_config:
-  prologue:
-    commands:
-      - checkout
-blocks:
-  - name: Tests
-    dependencies: []
-    task:
-      epilogue:
-        always:
-          commands:
-            - if [ -f assets/results.xml ]; then mv assets/results.xml results.xml; fi
-            - if [ -f results.xml ]; then test-results publish results.xml; fi
+    type: e2-standard-2
+    os_image: ubuntu2204
 
+global_job_config:
+  epilogue:
+    always:
+      commands:
+        - if [ -f out/results.xml ]; then test-results publish out/results.xml --name "Elixir $ELIXIR_VERSION"; fi
+
+blocks:
+  - name: "Tests"
+    task:
       jobs:
-        - name: Elixir code check
+        - name: Lint
+          env_vars:
+            - name: ELIXIR_VERSION
+              value: "1.18"
           commands:
-            - mix local.hex --force
-            - mix deps.get --only test
-            - mix test --no-start
+            - checkout
+            - make format.check
+
+        - name: Testing
+          matrix:
+            - env_var: ELIXIR_VERSION
+              values:
+                [
+                  "1.13",
+                  "1.14",
+                  "1.15",
+                  "1.16",
+                  "1.17-otp-26",
+                  "1.18-otp-26",
+                ]
+            - env_var: SEMAPHORE_JOB_INDEX
+              values: ["1", "2", "3", "4", "5"]
+            - env_var: SEMAPHORE_JOB_COUNT
+              values: ["5"]
+          commands:
+            - checkout
+            - make test MIX_TEST_PARTITION=$SEMAPHORE_JOB_INDEX MIX_TEST_PARTITIONS=$SEMAPHORE_JOB_COUNT
+
+after_pipeline:
+  task:
+    jobs:
+      - name: Submit Reports
+        commands:
+          - test-results gen-pipeline-report
+

@@ -2,6 +2,10 @@ defmodule Watchman.Server do
   use GenServer
   require Logger
 
+  def init(init_arg) do
+    {:ok, init_arg}
+  end
+
   def start_link(options \\ []) do
     state = %{
       host: options[:host] || Application.get_env(:watchman, :host),
@@ -66,7 +70,7 @@ defmodule Watchman.Server do
   end
 
   defp parse_host(host) when is_binary(host) do
-    case host |> to_char_list |> :inet.parse_address() do
+    case host |> to_charlist() |> :inet.parse_address() do
       {:error, _} -> host |> String.to_atom()
       {:ok, address} -> address
     end
@@ -111,19 +115,21 @@ defmodule Watchman.Server do
 
   defp tags_package(tags) do
     tag_str =
-    if Keyword.keyword?(tags) or is_map(tags) do
-      Enum.map(tags, fn {k, v} -> "#{k}:#{v}" end) |> Enum.join(",")
-    else
-      tagger(tags, [], 1)
-      |> Enum.reverse()
-      |> Enum.join(",")
-    end
+      if Keyword.keyword?(tags) or is_map(tags) do
+        Enum.map(tags, fn {k, v} -> "#{k}:#{v}" end) |> Enum.join(",")
+      else
+        tagger(tags, [], 1)
+        |> Enum.reverse()
+        |> Enum.join(",")
+      end
+
     if String.length(tag_str) > 0, do: "|##{tag_str}", else: ""
   end
 
   defp tagger([], acc, _index), do: acc
+
   defp tagger([h | t], acc, index) do
-     tagger(t,["tag#{index}:#{h}" | acc ], index + 1)
+    tagger(t, ["tag#{index}:#{h}" | acc], index + 1)
   end
 
   defp metric_type(:gauge), do: "g"

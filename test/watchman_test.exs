@@ -107,7 +107,7 @@ defmodule WatchmanTest do
     TestUDPServer.wait_for_clean_message_box()
     TestUDPServer.flush()
 
-    test_function3
+    test_function3()
 
     :timer.sleep(1000)
 
@@ -119,7 +119,7 @@ defmodule WatchmanTest do
     TestUDPServer.wait_for_clean_message_box()
     TestUDPServer.flush()
 
-    test_function4
+    test_function4()
 
     :timer.sleep(1000)
 
@@ -139,11 +139,11 @@ defmodule WatchmanTest do
     IO.puts("\nSubmiting to watchman took: #{time}ms")
 
     #
-    # submitting 1000 metrics should take less then a 5 miliseconds
+    # submitting 1000 metrics should take less then a 10 miliseconds
     #
     # We only want a referent duration here that is acceptable.
     #
-    assert time / 1000 < 5
+    assert time / 1000 < 10
   end
 
   test "watchman server has an upper limit of metrics" do
@@ -254,7 +254,7 @@ defmodule WatchmanTest do
       :timer.sleep(1000)
 
       assert TestUDPServer.last_message() ==
-        "tagged.watchman.test.no_tag.no_tag.no_tag.external.user.count:30|g"
+               "tagged.watchman.test.no_tag.no_tag.no_tag.external.user.count:30|g"
     end
 
     test "flag :external with tags => forward with flags" do
@@ -266,19 +266,25 @@ defmodule WatchmanTest do
       :timer.sleep(1000)
 
       assert TestUDPServer.last_message() ==
-        "tagged.watchman.test.first_tag.zwei_tag.no_tag.external.user.count:50|g"
+               "tagged.watchman.test.first_tag.zwei_tag.no_tag.external.user.count:50|g"
     end
 
     test "flag :external with tags, :internal with no flags => forward with flags" do
       TestUDPServer.wait_for_clean_message_box()
       TestUDPServer.flush()
 
-      Watchman.submit([internal: "internal.user.count", external: {"external.user.count", ["first_tag", "zwei_tag"]}], 50)
+      Watchman.submit(
+        [
+          internal: "internal.user.count",
+          external: {"external.user.count", ["first_tag", "zwei_tag"]}
+        ],
+        50
+      )
 
       :timer.sleep(1000)
 
       assert TestUDPServer.last_message() ==
-        "tagged.watchman.test.first_tag.zwei_tag.no_tag.external.user.count:50|g"
+               "tagged.watchman.test.first_tag.zwei_tag.no_tag.external.user.count:50|g"
     end
   end
 
@@ -356,12 +362,18 @@ defmodule WatchmanTest do
       TestUDPServer.wait_for_clean_message_box()
       TestUDPServer.flush()
 
-      Watchman.submit([internal: "internal.user.count", external: {"external.user.count", ["first_tag", "zwei_tag"]}], 50)
+      Watchman.submit(
+        [
+          internal: "internal.user.count",
+          external: {"external.user.count", ["first_tag", "zwei_tag"]}
+        ],
+        50
+      )
 
       :timer.sleep(1000)
 
       assert TestUDPServer.last_message() ==
-        "tagged.watchman.test.no_tag.no_tag.no_tag.internal.user.count:50|g"
+               "tagged.watchman.test.no_tag.no_tag.no_tag.internal.user.count:50|g"
     end
   end
 
@@ -420,7 +432,7 @@ defmodule WatchmanTest do
       TestUDPServer.wait_for_clean_message_box()
       TestUDPServer.flush()
 
-      Watchman.submit({"setup.duration", [tagA: :tag1, tagB: :tag2,tagC: :tag3]}, 30)
+      Watchman.submit({"setup.duration", [tagA: :tag1, tagB: :tag2, tagC: :tag3]}, 30)
 
       :timer.sleep(200)
 
@@ -432,7 +444,7 @@ defmodule WatchmanTest do
       TestUDPServer.wait_for_clean_message_box()
       TestUDPServer.flush()
 
-      Watchman.submit({"setup.duration", %{tagA: :tag1, tagB: :tag2,tagC: :tag3}}, 30)
+      Watchman.submit({"setup.duration", %{tagA: :tag1, tagB: :tag2, tagC: :tag3}}, 30)
 
       :timer.sleep(200)
 

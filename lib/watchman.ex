@@ -5,7 +5,7 @@ defmodule Watchman do
     import Supervisor.Spec, warn: false
 
     children = [
-      worker(Watchman.Server, []),
+      Watchman.Server
     ]
 
     opts = [strategy: :one_for_one, name: __MODULE__]
