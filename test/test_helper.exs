@@ -45,7 +45,7 @@ defmodule TestUDPServer do
     {:noreply, [package | messages]}
   end
 
-  def handle_call(:flush, _from, messages) do
+  def handle_call(:flush, _from, _messages) do
     {:reply, nil, [:nothing]}
   end
 

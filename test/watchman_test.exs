@@ -107,7 +107,7 @@ defmodule WatchmanTest do
     TestUDPServer.wait_for_clean_message_box()
     TestUDPServer.flush()
 
-    test_function3
+    test_function3()
 
     :timer.sleep(1000)
 
@@ -119,7 +119,7 @@ defmodule WatchmanTest do
     TestUDPServer.wait_for_clean_message_box()
     TestUDPServer.flush()
 
-    test_function4
+    test_function4()
 
     :timer.sleep(1000)
 

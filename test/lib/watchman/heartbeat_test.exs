@@ -5,7 +5,7 @@ defmodule WatchmanHeartbeatTest do
     TestUDPServer.wait_for_clean_message_box()
     TestUDPServer.flush()
 
-    {:ok, hb} = Watchman.Heartbeat.start_link(interval: 1)
+    {:ok, _hb} = Watchman.Heartbeat.start_link(interval: 1)
     :timer.sleep(5000)
 
     assert TestUDPServer.last_message() ==

@@ -34,7 +34,7 @@ defmodule Watchman.BenchmarkTest do
     TestUDPServer.wait_for_clean_message_box()
     TestUDPServer.flush()
 
-    simple1
+    simple1()
 
     :timer.sleep(1000)
 
@@ -46,7 +46,7 @@ defmodule Watchman.BenchmarkTest do
     TestUDPServer.wait_for_clean_message_box()
     TestUDPServer.flush()
 
-    simple2
+    simple2()
 
     :timer.sleep(1000)
 
