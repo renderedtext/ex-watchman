@@ -35,20 +35,19 @@ defmodule Watchman.Ecto do
 
   def log(entry, repo_name) do
     spawn(fn ->
-      table  = entry.source || "unknown"
-      queue  = entry.queue_time || 0
-      query  = entry.query_time || 0
+      table = entry.source || "unknown"
+      queue = entry.queue_time || 0
+      query = entry.query_time || 0
       decode = entry.decode_time || 0
-      total  = queue + query + decode
+      total = queue + query + decode
 
       tags = [repo_name, table]
 
-      Watchman.submit({"transaction.count",    tags              }, 1,      :count)
-      Watchman.submit({"transaction.duration", tags ++ ["query"] }, query,  :timing)
-      Watchman.submit({"transaction.duration", tags ++ ["queue"] }, queue,  :timing)
+      Watchman.submit({"transaction.count", tags}, 1, :count)
+      Watchman.submit({"transaction.duration", tags ++ ["query"]}, query, :timing)
+      Watchman.submit({"transaction.duration", tags ++ ["queue"]}, queue, :timing)
       Watchman.submit({"transaction.duration", tags ++ ["decode"]}, decode, :timing)
-      Watchman.submit({"transaction.duration", tags ++ ["total"] }, total,  :timing)
+      Watchman.submit({"transaction.duration", tags ++ ["total"]}, total, :timing)
     end)
   end
-
 end

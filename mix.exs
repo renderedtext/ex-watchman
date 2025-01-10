@@ -2,19 +2,26 @@ defmodule Watchman.Mixfile do
   use Mix.Project
 
   def project do
-    [app: :watchman,
-     version: "0.2.0",
-     elixir: "~> 1.2",
-     build_embedded: Mix.env == :prod,
-     start_permanent: Mix.env == :prod,
-     deps: deps()]
+    [
+      app: :watchman,
+      version: "0.2.0",
+      elixir: "~> 1.13",
+      build_embedded: Mix.env() == :prod,
+      start_permanent: Mix.env() == :prod,
+      deps: deps()
+    ]
   end
 
   def application do
-    [mod: {Watchman, []}, applications: [:logger]]
+    [
+      extra_applications: [:logger],
+      mod: {Watchman, []}
+    ]
   end
 
   defp deps do
-    []
+    [
+      {:junit_formatter, "~> 3.3", only: [:test]}
+    ]
   end
 end
