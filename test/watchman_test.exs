@@ -139,7 +139,7 @@ defmodule WatchmanTest do
     IO.puts("\nSubmiting to watchman took: #{time}ms")
 
     #
-    # submitting 1000 metrics should take less then a 10 miliseconds
+    # submitting 1000 metrics should take less then a 10 milliseconds
     #
     # We only want a referent duration here that is acceptable.
     #

@@ -308,3 +308,7 @@ There is two available UDP formats for messages:
 # evaulates to 
 #MetricName:value|type|@sample_rate|#tag1:value,tag1...
 ```
+
+## License
+
+This software is licensed under [the Apache 2.0 license](LICENSE).
